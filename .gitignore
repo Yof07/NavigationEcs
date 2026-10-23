@@ -1,0 +1,52 @@
+*.csproj
+*.sln
+Library/
+obj/
+Logs/
+Temp/
+UserSettings/
+.idea/
+.vs/
+.vscode/
+
+# Unity 生成物
+Assets/SceneDependencyCache/
+[Bb]uild/
+[Bb]uilds/
+MemoryCaptures/
+Recordings/
+
+# 工具缓存
+Assets/.VSCodeCounter/
+Assets/.claude/
+.claude/
+.workbuddy/
+.codebuddy/
+generated-images/
+
+# 未使用的大体积模型（仅保留在本地）
+Assets/Art/Models/Ji/
+
+# 文档与网页（不进仓库）
+*.md
+*.html
+
+# IDE / 用户级设置
+*.DotSettings.user
+*.user
+.vsconfig
+*.pidb
+*.pdb
+*.mdb
+*.svd
+*.unityproj
+*.booproj
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 打包产物
+*.apk
+*.aab
+*.unitypackage
