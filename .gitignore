@@ -31,6 +31,10 @@ Assets/Art/Models/Ji/
 *.md
 *.html
 
+# 长期记忆需要进仓库
+!MemoryDocs/
+!MemoryDocs/**
+
 # IDE / 用户级设置
 *.DotSettings.user
 *.user
