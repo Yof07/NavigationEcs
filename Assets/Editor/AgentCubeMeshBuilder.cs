@@ -15,7 +15,7 @@ namespace Editor
         private int m_N = 5;
         private float m_EdgeLength = 1f;
         private float m_Gap = 0.08f;
-        private string m_OutputDir = "Assets/Art/Models/Agent";
+        private string m_OutputDir = "Assets/Art/Meshes/Agent";
 
         [MenuItem("Tools/Navigation/Agent Cube Mesh Builder")]
         public static void Open()
