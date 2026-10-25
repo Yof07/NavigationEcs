@@ -577,9 +577,9 @@ MonoBehaviour:
     type: 3}
   Rings:
   - Radius: 10
-    Count: 100
+    Count: 30
   - Radius: 11
-    Count: 100
+    Count: 30
 --- !u!1 &912047027
 GameObject:
   m_ObjectHideFlags: 0

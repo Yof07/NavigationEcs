@@ -465,7 +465,6 @@
     "m_OutputNode": {
         "m_Id": ""
     },
-    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "45dce575861b473db1390ea64b1db921"
@@ -902,6 +901,30 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "363db476f98144e1bcc4501f46354e4b",
+    "m_Id": 0,
+    "m_DisplayName": "In",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "In",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "42953699a8b04795a53a113680f56954",
     "m_Id": 1,
     "m_DisplayName": "B",
@@ -992,7 +1015,6 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
-    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -1567,7 +1589,6 @@
     "m_SourceType": 0,
     "m_FunctionName": "NormalBasedOutlines",
     "m_FunctionSource": "6bbde2b4dcbffb84da0d97ce76638ea1",
-    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "Enter function body here..."
 }
 
@@ -1843,7 +1864,7 @@
     "m_DefaultValue": {
         "x": 0.0,
         "y": 0.0,
-        "z": 1.0
+        "z": 0.0
     },
     "m_Labels": []
 }
@@ -1970,31 +1991,6 @@
         "z": 0.0,
         "w": 0.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "afc1536b54644dbfa49bed60dcb2a231",
-    "m_Id": 0,
-    "m_DisplayName": "In",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "In",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
 }
 
 {
@@ -2141,7 +2137,7 @@
     },
     "m_Slots": [
         {
-            "m_Id": "afc1536b54644dbfa49bed60dcb2a231"
+            "m_Id": "363db476f98144e1bcc4501f46354e4b"
         },
         {
             "m_Id": "a847896e987544d3ac906a26022eb047"
@@ -2401,7 +2397,6 @@
     "m_SourceType": 0,
     "m_FunctionName": "ThicknessRound",
     "m_FunctionSource": "6bbde2b4dcbffb84da0d97ce76638ea1",
-    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "Enter function body here..."
 }
 
@@ -2479,7 +2474,6 @@
     "m_SourceType": 0,
     "m_FunctionName": "DynamicDepthThreshold",
     "m_FunctionSource": "6bbde2b4dcbffb84da0d97ce76638ea1",
-    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "Enter function body here..."
 }
 
@@ -2529,7 +2523,6 @@
     "m_SourceType": 0,
     "m_FunctionName": "DepthBasedOutlines",
     "m_FunctionSource": "6bbde2b4dcbffb84da0d97ce76638ea1",
-    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "Enter function body here..."
 }
 

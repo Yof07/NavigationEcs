@@ -9,6 +9,7 @@ namespace Editor
     /// 生成「代理魔方」网格：一个 mesh 内装着 N×N×N 壳层小方块（内含一个自动贴合的核心块）。
     /// 每个小方块是独立的 6 面 24 顶点，硬边法线；
     /// 方块中心写入 TEXCOORD1（float3），供顶点着色器计算球面波相位与径向外推。
+    /// 魔方几何中心固定在 (0,0,0)：块心坐标关于原点对称，内核心位于原点。
     /// </summary>
     public class AgentCubeMeshBuilder : EditorWindow
     {
@@ -91,6 +92,8 @@ namespace Editor
                             continue;
                         }
 
+                        // 块心坐标关于原点对称：减去 half 后，x/y/z 落在 ±(half − cell/2) 之间
+                        // 也就是说魔方几何中心固定在 (0,0,0)，shader 里可直接用 length(blockCenter) 当半径
                         Vector3 center = new Vector3(
                             (x + 0.5f) * cell - half,
                             (y + 0.5f) * cell - half,

@@ -1643,7 +1643,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "CelShader (Custom Function)",
+    "m_Name": "EnvironmentCel (Custom Function)",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
