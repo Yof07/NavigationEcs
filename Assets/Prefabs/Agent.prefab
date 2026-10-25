@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxSpeed: 5
-  Radius: 0.5
+  Radius: 0.7
   Height: 2
   TurnSpeed: 270
   StoppingDistance: 1

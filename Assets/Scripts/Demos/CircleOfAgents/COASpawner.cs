@@ -34,10 +34,10 @@ namespace Navigation.Demos
         /// </summary>
         public SpawnRing[] Rings =
         {
-            new SpawnRing { Radius = 25, Count = 75 },
-            new SpawnRing { Radius = 26, Count = 80 },
-            new SpawnRing { Radius = 27, Count = 85 },
-            new SpawnRing { Radius = 28, Count = 90 },
+            new SpawnRing { Radius = 25, Count = 74 },
+            new SpawnRing { Radius = 27, Count = 75 },
+            new SpawnRing { Radius = 29, Count = 76 },
+            new SpawnRing { Radius = 31, Count = 77 },
         };
 
         public class COASpawnerBaker : Baker<COASpawner>
