@@ -1704,7 +1704,7 @@
         "m_SerializableColors": []
     },
     "m_SourceType": 0,
-    "m_FunctionName": "CelShader",
+    "m_FunctionName": "EnvironmentCel",
     "m_FunctionSource": "c8f5775e3cd8477eb4a5cc518d0534eb",
     "m_FunctionBody": "Enter function body here..."
 }

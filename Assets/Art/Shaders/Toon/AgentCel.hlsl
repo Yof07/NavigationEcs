@@ -1,5 +1,5 @@
-#ifndef TOONSHADER_HLSL_INCLUDED
-#define TOONSHADER_HLSL_INCLUDED
+#ifndef AGENTCEL_HLSL_INCLUDED
+#define AGENTCEL_HLSL_INCLUDED
 
 #ifndef SHADERGRAPH_PREVIEW
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -123,7 +123,7 @@ float3 GetSingleLightCelShade(in SurfaceInfo s, in Light l)
 }
 #endif
 
-void ToonShader_float(in float3  normalWS, in float3     positionWS, in float3 viewDirWS,
+void AgentCel_float(in float3  normalWS, in float3     positionWS, in float3 viewDirWS,
                       in bool    enableShadow, in float3 shadowColor, in int cascadeCount, in float cascadeEnd, in float cascadeSpan, in bool enableSpecular,
                       in float3  specularColor, in float specularThreshold, in bool enableRim, in float3 rimColor, in float rimThreshold,
                       out float3 finalColors)

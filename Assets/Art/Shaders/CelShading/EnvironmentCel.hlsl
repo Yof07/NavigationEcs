@@ -1,5 +1,5 @@
-#ifndef CELSHADING_HLSL_INCLUDED
-#define CELSHADING_HLSL_INCLUDED
+#ifndef ENVIRONMENTCEL_HLSL_INCLUDED
+#define ENVIRONMENTCEL_HLSL_INCLUDED
 
 #ifndef SHADERGRAPH_PREVIEW
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -100,7 +100,7 @@ float3 GetSingleLightCelShade(in SurfaceInfo s, in Light l)
 }
 #endif
 
-void CelShader_float(
+void EnvironmentCel_float(
 	in float3 normalWS, 
 	in float3 positionWS, 
 	in float3 viewDirWS,
