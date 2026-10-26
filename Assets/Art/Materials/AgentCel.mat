@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ToonAgent
+  m_Name: AgentCel
   m_Shader: {fileID: -6465566751694194690, guid: 4b0f03c534460554e94737939acd6add,
     type: 3}
   m_Parent: {fileID: 0}
