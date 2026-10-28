@@ -24,9 +24,6 @@ Assets/.claude/
 .codebuddy/
 generated-images/
 
-# 未使用的大体积模型（仅保留在本地）
-Assets/Art/Models/Ji/
-
 # 文档与网页（不进仓库）
 *.md
 *.html

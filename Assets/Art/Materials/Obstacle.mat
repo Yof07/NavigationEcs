@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Obstacle
-  m_Shader: {fileID: -6465566751694194690, guid: dae2751ae5ed4b56a666d7e210be871c,
+  m_Shader: {fileID: -6465566751694194690, guid: 4b0f03c534460554e94737939acd6add,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -100,6 +100,9 @@ Material:
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
+    - _CascadeCount: 2
+    - _CascadeEnd: 0.487
+    - _CascadeSpan: 2
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2

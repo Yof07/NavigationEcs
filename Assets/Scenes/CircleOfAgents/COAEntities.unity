@@ -399,7 +399,7 @@ PrefabInstance:
     - target: {fileID: 6912816854125598904, guid: 3740769933aabeb4f8d28b822043ed73,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 200
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 6912816854125598904, guid: 3740769933aabeb4f8d28b822043ed73,
         type: 3}
@@ -499,13 +499,13 @@ MonoBehaviour:
     type: 3}
   Rings:
   - Radius: 25
-    Count: 74
-  - Radius: 27
     Count: 75
-  - Radius: 29
-    Count: 76
-  - Radius: 31
-    Count: 77
+  - Radius: 26
+    Count: 80
+  - Radius: 27
+    Count: 85
+  - Radius: 28
+    Count: 90
 --- !u!4 &1463276996
 Transform:
   m_ObjectHideFlags: 0

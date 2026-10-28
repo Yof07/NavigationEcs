@@ -50,7 +50,7 @@ MonoBehaviour:
   AvoidanceNeighbours: 4
   RecalcPathsAfterGridRefresh: 0
   DifferentIslandsPolicy: 0
-  TargetInaccessibleSearchTolerance: 0
+  TargetInaccessibleSearchTolerance: 10
   MaxPathfindingOpsPerFrame: 0
   InaccessibleNodes:
     serializedVersion: 2

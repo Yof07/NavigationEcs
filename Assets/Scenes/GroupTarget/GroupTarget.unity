@@ -387,7 +387,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Use Arrows to move Red Sphere
+  m_Text: "\u2191\u2193\u2190\u2192\u79FB\u52A8\u7EA2\u8272\u5C0F\u7403"
 --- !u!222 &494444708
 CanvasRenderer:
   m_ObjectHideFlags: 0
