@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 // 注意：命名空间不能叫 Navigation.Input —— 会遮住 UnityEngine.Input，
 // 让工程里其它文件的 Input.GetKeyDown 解析失败。统一放 Navigation。
