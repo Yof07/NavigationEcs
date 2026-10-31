@@ -9,19 +9,19 @@ using Unity.Rendering;
 namespace Navigation.Demos
 {
     /// <summary>
-    /// COA（Circle Of Agents）场景的代理生成系统。
+    /// COA（Circle Of Agents）场景的代理生成系统
     /// 游戏启动后仅执行一次：将代理按同心圆排列生成在场景中，
-    /// 每个代理的目标点设置为圆心对面方向，形成对穿效果以测试大规模避障。
+    /// 每个代理的目标点设置为圆心对面方向，形成对穿效果以测试大规模避障
     /// </summary>
-    //RequireMatchingQueriesForUpdate 是一个应用于 SystemBase 或 ISystem 的特性（Attribute）。
+    //RequireMatchingQueriesForUpdate是一个应用于SystemBase或ISystem的特性（Attribute）
     //它的核心作用是进行性能优化：如果该系统管理的所有查询（EntityQuery）都找不到任何匹配的实体，
-    //就自动跳过该系统的 OnUpdate 方法，不执行这一帧的更新逻辑
+    //就自动跳过该系统的OnUpdate方法，不执行这一帧的更新逻辑
     [RequireMatchingQueriesForUpdate]
     [UpdateAfter(typeof(CheckObstaclesSystem))]
     [UpdateBefore(typeof(PathfindingRequestSystem))]
     partial struct COASpawnerSystem : ISystem
     {
-        /// <summary>防止重复生成的标志，OnUpdate 只执行一次生成逻辑</summary>
+        /// <summary>防止重复生成的标志，OnUpdate只执行一次生成逻辑</summary>
         bool hasSpawned;
 
         //[BurstCompile]
@@ -36,13 +36,13 @@ namespace Navigation.Demos
 
             Entity agentPrefab = Entity.Null;
 
-            // 从场景中读取由 COASpawner 烘焙好的 Prefab Entity 引用
+            // 从场景中读取由COASpawner烘焙好的Prefab Entity引用
             foreach (var agentPrefHolder in SystemAPI.Query<AgentPrefabComponent>())
             {
                 agentPrefab = agentPrefHolder.Value;
             }
 
-            // Prefab 未就绪时跳过，等下一帧再试
+            // Prefab未就绪时跳过，等下一帧再试
             if (agentPrefab == Entity.Null)
             {
                 ecb.Dispose();
@@ -56,10 +56,10 @@ namespace Navigation.Demos
 
             hasSpawned = true;
 
-            // 环配置来自 COASpawner 的 Inspector 数组，Baker 烘成 buffer
+            // 环配置来自COASpawner的Inspector数组，Baker烘成buffer
             DynamicBuffer<SpawnRing> rings = SystemAPI.GetSingletonBuffer<SpawnRing>();
 
-            // 出生点过滤用的网格快照（本系统排在 CheckObstacles 之后，节点已扫过）
+            // 出生点过滤用的网格快照（本系统排在CheckObstacles之后，节点已扫过）
             Grid grid = default;
             LocalTransform gridTransform = default;
 
@@ -69,7 +69,7 @@ namespace Navigation.Demos
                 gridTransform = gridLocalTransform;
             }
 
-            // 当恰好有一个实体拥有这个  DynamicBuffer<GridNodesBuffer> 时，才会被查询出来并返回，否则只会抛错
+            // 当恰好有一个实体拥有这个DynamicBuffer<GridNodesBuffer> 时，才会被查询出来并返回，否则只会抛错
             DynamicBuffer<GridNodesBuffer> nodes = SystemAPI.GetSingletonBuffer<GridNodesBuffer>();
 
             int totalAgents = 0;
@@ -82,7 +82,7 @@ namespace Navigation.Demos
 
                 for (int i = 0; i < count; i++)
                 {
-                    // 将索引 i 均匀映射到 [0, 360) 度，用于圆周均布和 HSV 着色
+                    // 将索引i均匀映射到 [0, 360) 度，用于圆周均布和HSV着色
                     float ang = (math.PI * 2) / count * i;
                     ang = math.degrees(ang);
                     ang = ang < 0 ? ang + 360 : ang;
@@ -92,7 +92,7 @@ namespace Navigation.Demos
                     Color rgbColor = Color.HSVToRGB(newColor.x, newColor.y, newColor.z);
                     rgbColor.a = 1;
 
-                    // 代理在圆周上的生成位置，Y=1 避免陷入地面
+                    // 代理在圆周上的生成位置，Y=1避免陷入地面
                     float3 spawnPos = new float3(
                         math.cos((math.PI * 2) / count * i) * radius,
                         1,
@@ -105,7 +105,7 @@ namespace Navigation.Demos
                         continue;
                     }
 
-                    // 面朝圆心（-spawnPos 方向），用于初始朝向
+                    // 面朝圆心（-spawnPos方向），用于初始朝向
                     LocalTransform locTransform = new LocalTransform()
                     {
                         Position = spawnPos,
@@ -113,7 +113,7 @@ namespace Navigation.Demos
                         Scale = 1
                     };
 
-                    // 目标点 = 当前位置沿正前方延伸 2 倍半径，即穿过圆心到对面
+                    // 目标点 = 当前位置沿正前方延伸2倍半径，即穿过圆心到对面
                     PathfindingRequester requester = new PathfindingRequester()
                     {
                         Destination = spawnPos + (locTransform.Forward() * radius * 2),
@@ -121,7 +121,7 @@ namespace Navigation.Demos
                         RequestGiven = false,   // false = 立即触发寻路请求
                     };
 
-                    // 设置代理的渲染颜色（通过 Entities Graphics 的 MaterialProperty）
+                    // 设置代理的渲染颜色（通过Entities Graphics的MaterialProperty）
                     URPMaterialPropertyBaseColor color = new URPMaterialPropertyBaseColor()
                     {
                         Value = new float4(rgbColor.r, rgbColor.g, rgbColor.b, rgbColor.a)
@@ -141,9 +141,9 @@ namespace Navigation.Demos
             // 打印本次生成的代理总数
             Debug.Log($"[COA] 已生成代理数量：{totalAgents}（因出生点落在障碍上跳过 {skippedAgents} 个）");
 
-            // 若需要查询场景中实际存活的 Agent Entity 数量，使用以下方式：
+            // 若需要查询场景中实际存活的Agent Entity数量，使用以下方式：
             // var query = state.GetEntityQuery(ComponentType.ReadOnly<Agent>());
-            // Debug.Log($"[COA] 当前场景 Agent 数量：{query.CalculateEntityCount()}");
+            // Debug.Log($"[COA] 当前场景Agent数量：{query.CalculateEntityCount()}");
         }
     }
 }

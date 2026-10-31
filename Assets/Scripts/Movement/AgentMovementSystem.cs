@@ -16,24 +16,24 @@ namespace Navigation
     /// 代理移动系统，系统的核心执行层，每帧负责：
     ///
     /// 1. 路径结果同步：
-    ///    检查各代理对应的寻路操作 Entity 是否完成，若完成则将路径点复制到代理自身缓冲区
+    ///    检查各代理对应的寻路操作Entity是否完成，若完成则将路径点复制到代理自身缓冲区
     ///
     /// 2. 目标追踪（ConstantTargetFollower）：
-    ///    检测目标 Entity 位置变化，动态触发重新寻路
+    ///    检测目标Entity位置变化，动态触发重新寻路
     ///
     /// 3. 无避障代理的移动：
     ///    简单沿路径点前进，到达路径点后切换到下一个，并通过物理射线防止穿越障碍物
     ///
-    /// 4. RVO 避障代理的移动（核心算法）：
-    ///    a. 使用 KD-Tree（KNN）查找每个代理的 K 近邻
-    ///    b. 为每个邻居计算 ORCA（最优互惠碰撞避免）速度约束线
+    /// 4. RVO避障代理的移动（核心算法）：
+    ///    a. 使用KD-Tree（KNN）查找每个代理的K近邻
+    ///    b. 为每个邻居计算ORCA（最优互惠碰撞避免）速度约束线
     ///    c. 通过线性规划在所有约束下找最优速度
     ///    d. 物理射线检测阻止穿越墙壁
     /// </summary>
     [UpdateAfter(typeof(PathfindingSystem))]
     partial struct AgentMovementSystem : ISystem
     {
-        // 各组件的查找缓存（在 OnCreate 中初始化，每帧在 OnUpdate 中 Update）
+        // 各组件的查找缓存（在OnCreate中初始化，每帧在OnUpdate中Update）
         public ComponentLookup<PathfindingResult> AllResults;
         public BufferLookup<PathBuffer> AllPathPoints;
         public ComponentLookup<ConstantTargetFollower> AllConstantFollowers;
@@ -59,7 +59,7 @@ namespace Navigation
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // 每帧更新所有 Lookup（确保访问最新数据）
+            // 每帧更新所有Lookup（确保访问最新数据）
             AllResults.Update(ref state);
             AllPathPoints.Update(ref state);
             AllConstantFollowers.Update(ref state);
@@ -71,12 +71,12 @@ namespace Navigation
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
             NativeList<Entity> allAgents = new NativeList<Entity>(Allocator.Temp);
 
-            // 获取 Unity Physics World 单例（用于射线检测）
+            // 获取Unity Physics World单例（用于射线检测）
             EntityQueryBuilder builder = new EntityQueryBuilder(Allocator.Temp).WithAll<PhysicsWorldSingleton>();
             EntityQuery singletonQuery = state.EntityManager.CreateEntityQuery(builder);
             var physicsWorld = singletonQuery.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
 
-            // 获取 Grid 参数（节点大小等）
+            // 获取Grid参数（节点大小等）
             builder = new EntityQueryBuilder(Allocator.Temp).WithAll<Grid, LocalTransform, NeighbourQuerySettings, UniformGridQuerySettings>();
             EntityQuery gridQuery = state.EntityManager.CreateEntityQuery(builder);
             var grid = gridQuery.GetSingleton<Grid>();
@@ -88,7 +88,7 @@ namespace Navigation
             gridQuery.Dispose();
 
             // =============================================
-            // 阶段 1：路径结果同步 + 目标追踪
+            // 阶段1：路径结果同步 + 目标追踪
             // =============================================
             foreach (var (pathfindingRequester, pathFollower, agentEntity) in SystemAPI
                 .Query<RefRW<PathfindingRequester>, RefRW<PathFollower>>()
@@ -106,7 +106,7 @@ namespace Navigation
                     {
                         if (reqResult.PathFound)
                         {
-                            // 从操作 Entity 的路径缓冲区复制路径点到代理的路径缓冲区
+                            // 从操作Entity的路径缓冲区复制路径点到代理的路径缓冲区
                             DynamicBuffer<PathBuffer> reqPathPoints = AllPathPoints[pathfindingRequester.ValueRO.RequestEntity];
                             DynamicBuffer<PathBuffer> agentPathPoints = state.EntityManager.GetBuffer<PathBuffer>(agentEntity);
 
@@ -121,7 +121,7 @@ namespace Navigation
                             }
                         }
 
-                        // 路径已读取，销毁临时操作 Entity（清理内存）
+                        // 路径已读取，销毁临时操作Entity（清理内存）
                         ecb.DestroyEntity(pathfindingRequester.ValueRO.RequestEntity);
                     }
                 }
@@ -147,7 +147,7 @@ namespace Navigation
                             }
                             else
                             {
-                                // 仅在目标移动超过阈值（0.01 单位距离²）时重新寻路
+                                // 仅在目标移动超过阈值（0.01单位距离²）时重新寻路
                                 if (math.distancesq(AllLocalTransforms[constantTargetFollower.Target].Position,
                                     constantTargetFollower.TargetLastPosition) > 0.01f)
                                 {
@@ -164,7 +164,7 @@ namespace Navigation
             }
 
             // =============================================
-            // 阶段 2：无避障代理的移动（WithAbsent<AvoidanceAgent>）
+            // 阶段2：无避障代理的移动（WithAbsent<AvoidanceAgent>）
             // =============================================
             foreach (var (agent, 
                          pathFollower, 
@@ -179,12 +179,12 @@ namespace Navigation
             {
                 if (!pathFollower.ValueRO.PathAvailable || pathFollower.ValueRO.DestinationReached) continue;
 
-                // 强制 Y 轴固定在代理中心高度（防止 Y 轴漂移）
+                // 强制Y轴固定在代理中心高度（防止Y轴漂移）
                 PathFollowing.ClampToAgentHeight(ref agentTransform.ValueRW, agent.ValueRO);
 
                 DynamicBuffer<PathBuffer> agentPath = state.EntityManager.GetBuffer<PathBuffer>(agentEntity);
 
-                // ----- 路径点切换逻辑（最后一个点用 StoppingDistance 阈值）-----
+                // ----- 路径点切换逻辑（最后一个点用StoppingDistance阈值）-----
                 PathFollowing.AdvanceIndex(ref pathFollower.ValueRW, agent.ValueRO, agentPath,
                     agentTransform.ValueRO.Position, grid.NodeSize,
                     agent.ValueRO.Radius + agent.ValueRO.StoppingDistance);
@@ -248,18 +248,18 @@ namespace Navigation
             }
 
             // =============================================
-            // 阶段 3：邻居查询（仅限有避障代理时）
+            // 阶段3：邻居查询（仅限有避障代理时）
             //
-            // 输出产物（供阶段 4 消费）：每个避障代理的 NeighbourBuffer
-            //   - 内容：该代理的邻居代理 Entity，数量上限为 NeighbourQuerySettings.MaxNeighbours
-            //   - 已排除自身；已过滤"到达目的地且 IgnoreAvoidanceWhenDestReached"的静止代理
-            //   - 每次整体 Clear 后重写，不跨帧累积；邻居的位置需阶段 4 自行从
-            //     AllLocalTransforms 取（缓冲区里只存 Entity，不存坐标）
-            //   - 实现由 NeighbourQuerySettings.Method 选择：
-            //     KdTree = 精确最近 k 个；UniformGrid = 半径内最多 k 个
+            // 输出产物（供阶段4消费）：每个避障代理的NeighbourBuffer
+            //   - 内容：该代理的邻居代理Entity，数量上限为NeighbourQuerySettings.MaxNeighbours
+            //   - 已排除自身；已过滤"到达目的地且IgnoreAvoidanceWhenDestReached"的静止代理
+            //   - 每次整体Clear后重写，不跨帧累积；邻居的位置需阶段4自行从
+            //     AllLocalTransforms取（缓冲区里只存Entity，不存坐标）
+            //   - 实现由NeighbourQuerySettings.Method选择：
+            //     KdTree = 精确最近k个；UniformGrid = 半径内最多k个
             // =============================================
 
-            // 要被 Job 线程用，内存活到 Job 线程用完
+            // 要被Job线程用，内存活到Job线程用完
             NativeList<float3> avoidanceAgentsPositions = new NativeList<float3>(0, Allocator.TempJob);    
 
             EntityQuery avoidanceAgents = new EntityQueryBuilder(Allocator.Temp)
@@ -283,10 +283,10 @@ namespace Navigation
                 avoidanceAgentsPositions.Add(AllLocalTransforms[avAgEnts[i]].Position);
             }
 
-            // 使用KdTree 或 UniformGrid 查找邻居
+            // 使用KdTree或UniformGrid查找邻居
             if (neighbourQuerySettings.Method == NeighbourQueryMethod.KdTree)
             {
-                int kNeighbours = neighbourQuerySettings.MaxNeighbours + 1; // KNN 结果含自身
+                int kNeighbours = neighbourQuerySettings.MaxNeighbours + 1; // KNN结果含自身
                 WriteNeighboursWithKdTree(avoidanceAgentsPositions, kNeighbours, avAgEnts);
             }
             else
@@ -301,7 +301,7 @@ namespace Navigation
             }
 
             // =============================================
-            // 阶段 4：RVO 避障代理的移动
+            // 阶段4：RVO避障代理的移动
             // =============================================
             foreach (var (agent, 
                          pathFollower, 
@@ -318,13 +318,13 @@ namespace Navigation
             {
                 if (!pathFollower.ValueRO.PathAvailable || pathFollower.ValueRO.DestinationReached) continue;
 
-                // Y 轴固定
+                // Y轴固定
                 PathFollowing.ClampToAgentHeight(ref agentTransform.ValueRW, agent.ValueRO);
 
                 DynamicBuffer<NeighbourBuffer> agentNeighbours = state.EntityManager.GetBuffer<NeighbourBuffer>(agentEntity);
                 DynamicBuffer<PathBuffer> agentPath = state.EntityManager.GetBuffer<PathBuffer>(agentEntity);
 
-                // ----- 路径点切换逻辑（最后一个点只用 Radius，与阶段 2 不同）-----
+                // ----- 路径点切换逻辑（最后一个点只用Radius，与阶段2不同）-----
                 PathFollowing.AdvanceIndex(ref pathFollower.ValueRW, agent.ValueRO, agentPath,
                     agentTransform.ValueRO.Position, grid.NodeSize, agent.ValueRO.Radius);
 
@@ -348,7 +348,7 @@ namespace Navigation
                 // 理想速度方向（单位向量）：朝向当前路径点
                 float2 optVel = OrcaSolver.V2(math.normalize((destination - agentTransform.ValueRO.Position)));
 
-                // 执行 ORCA 速度计算（算法本体在 Movement/Avoidance/OrcaSolver.cs）
+                // 执行ORCA速度计算（算法本体在Movement/Avoidance/OrcaSolver.cs）
                 OrcaSolver.CalculateFinalVelocity(orcaLines, AllAgents, AllLocalTransforms, agent.ValueRW,
                     agentAvoidance.ValueRW, agentTransform.ValueRW,
                     destination, agentNeighbours, SystemAPI.Time.DeltaTime, optVel, ref newVelocity);
@@ -368,7 +368,7 @@ namespace Navigation
 
                 if (math.length(agent.ValueRO.CurrentVelocity) > 0)
                 {
-                    // 左中右三条平行射线（同阶段 2）
+                    // 左中右三条平行射线（同阶段2）
                     float3 rayOrigin = PathFollowing.ObstacleRayOrigin(agentTransform.ValueRO.Position, agent.ValueRO);
                     float3 sideOffset = agentTransform.ValueRO.Right() * (agent.ValueRO.Radius * 0.5f);
                     float3 moveDir = math.normalize(agent.ValueRW.CurrentVelocity);

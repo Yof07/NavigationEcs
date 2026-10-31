@@ -10,21 +10,21 @@ using UnityEngine;
 namespace Navigation
 {
     /// <summary>
-    /// KD 树实时可视化组件（Scene 视图 Gizmos）。
+    /// KD树实时可视化组件（Scene视图Gizmos）
     ///
     /// 使用方式：
-    /// 1. 挂载此脚本到场景中任意 GameObject
-    /// 2. 运行游戏，在 Scene 视图中即可看到 KD 树结构
-    /// 3. 通过 Inspector 开关各层可视化选项
+    /// 1. 挂载此脚本到场景中任意GameObject
+    /// 2. 运行游戏，在Scene视图中即可看到KD树结构
+    /// 3. 通过Inspector开关各层可视化选项
     ///
     /// 显示内容：
-    /// - KD 树各层包围盒（颜色渐变：根=红，叶=蓝）
-    /// - 分割平面线框（X 轴=橙，Y 轴=绿，Z 轴=紫）
-    /// - 代理间的 K 近邻连线（青色）
+    /// - KD树各层包围盒（颜色渐变：根=红，叶=蓝）
+    /// - 分割平面线框（X轴=橙，Y轴=绿，Z轴=紫）
+    /// - 代理间的K近邻连线（青色）
     /// - 代理位置点（黄色球）
     ///
-    /// 注意：每帧会重新构建一个临时 KD 树用于可视化，仅供 Scene 调试使用，
-    /// 不影响 AgentMovementSystem 中的正式 KD 树计算。
+    /// 注意：每帧会重新构建一个临时KD树用于可视化，仅供Scene调试使用，
+    /// 不影响AgentMovementSystem中的正式KD树计算
     /// </summary>
     [AddComponentMenu("Navigation/KD Tree Visualizer")]
     public class KdTreeVisualizer : MonoBehaviour
@@ -65,19 +65,19 @@ namespace Navigation
         [SerializeField, Range(0.02f, 1f)]
         float dotRadius = 0.15f;
 
-        // ── 缓存数据（Update 写入，OnDrawGizmos 读取）────────────────────────────
+        // ── 缓存数据（Update写入，OnDrawGizmos读取）────────────────────────────
 
         /// <summary>
-        /// 从 KdNode 拷贝出来的、可直接用于 Gizmos 绘制的一层缓存。
-        /// Gizmos 不能在 NativeContainer 上直接绘制，且临时 KD 树在 Update 末尾就释放了，
-        /// 所以必须先把需要的信息搬到托管结构里。
+        /// 从KdNode拷贝出来的、可直接用于Gizmos绘制的一层缓存
+        /// Gizmos不能在NativeContainer上直接绘制，且临时KD树在Update末尾就释放了，
+        /// 所以必须先把需要的信息搬到托管结构里
         /// </summary>
         struct CachedNode
         {
             public Vector3 center;
             public Vector3 size;
             public int depth;
-            public int partitionAxis; // -1=叶节点 0=X 1=Y 2=Z
+            public int partitionAxis; // -1=叶节点0=X 1=Y 2=Z
             public float partitionCoord;
             public Vector3 boundsMin;
             public Vector3 boundsMax;
@@ -87,12 +87,12 @@ namespace Navigation
         readonly List<(Vector3 from, Vector3 to)> m_neighbourLines = new List<(Vector3 from, Vector3 to)>();
         readonly List<Vector3> m_agentPositions = new List<Vector3>();
 
-        /// <summary>本次采样中出现的最大节点深度，用于把 depth 归一化到渐变 [0,1]</summary>
+        /// <summary>本次采样中出现的最大节点深度，用于把depth归一化到渐变 [0,1]</summary>
         int m_maxDepthFound = 1;
 
         EntityManager m_em;
 
-        /// <summary>分割平面颜色：X=橙 Y=绿 Z=紫（alpha 仅对 Gizmos 填充生效）</summary>
+        /// <summary>分割平面颜色：X=橙Y=绿Z=紫（alpha仅对Gizmos填充生效）</summary>
         static readonly Color[] k_splitColors =
         {
             new Color(1.0f, 0.55f, 0.0f, 0.5f),
@@ -100,10 +100,10 @@ namespace Navigation
             new Color(0.7f, 0.2f, 1.0f, 0.5f),
         };
 
-        // ── Unity 回调 ──────────────────────────────────────────────────────────
+        // ── Unity回调 ──────────────────────────────────────────────────────────
 
         /// <summary>
-        /// 组件首次添加时设置默认渐变（红→黄→绿→蓝），省得每次手动配色。
+        /// 组件首次添加时设置默认渐变（红→黄→绿→蓝），省得每次手动配色
         /// </summary>
         void Reset()
         {
@@ -124,8 +124,8 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 每帧重新采集一次数据：代理位置 → 临时 KD 树 → 拷出节点包围盒 / 分割信息 / 邻居连线。
-        /// 之所以放在 Update 而不是 OnDrawGizmos：EntityQuery、Native 容器分配都不该在绘制回调里做。
+        /// 每帧重新采集一次数据：代理位置 → 临时KD树 → 拷出节点包围盒 / 分割信息 / 邻居连线
+        /// 之所以放在Update而不是OnDrawGizmos：EntityQuery、Native容器分配都不该在绘制回调里做
         /// </summary>
         void Update()
         {
@@ -143,10 +143,10 @@ namespace Navigation
 
             m_em = world.EntityManager;
 
-            // 查询所有避障代理（与 AgentMovementSystem 阶段 3 建树用的是同一批点）
+            // 查询所有避障代理（与AgentMovementSystem阶段3建树用的是同一批点）
             var query = m_em.CreateEntityQuery(
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<AvoidanceAgent>());     // 这里应该是 AvoidanceAgent，但是我要在没有避障的时候也显示，所以暂时写成ASAgent
+                ComponentType.ReadOnly<AvoidanceAgent>());     // 这里应该是AvoidanceAgent，但是我要在没有避障的时候也显示，所以暂时写成ASAgent
 
             if (query.IsEmpty)
             {
@@ -163,7 +163,7 @@ namespace Navigation
                 m_agentPositions.Add((Vector3)positions[i]);
             }
 
-            // 构建临时 KD 树：Allocator.Temp 不可传给 Job，直接调用 Rebuild() 在主线程同步完成
+            // 构建临时KD树：Allocator.Temp不可传给Job，直接调用Rebuild() 在主线程同步完成
             var container = new KnnContainer(positions, buildNow: false, Allocator.Temp);
             container.Rebuild();
 
@@ -180,14 +180,14 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 只读缓存，绘制全部来自 m_cachedNodes / m_neighbourLines / m_agentPositions。
+        /// 只读缓存，绘制全部来自m_cachedNodes / m_neighbourLines / m_agentPositions
         /// </summary>
         void OnDrawGizmos()
         {
             if (!Application.isPlaying)
                 return;
 
-            // 1. KD 包围盒（按深度着色）
+            // 1. KD包围盒（按深度着色）
             if (showTree)
             {
                 foreach (var node in m_cachedNodes)
@@ -200,7 +200,7 @@ namespace Navigation
                 }
             }
 
-            // 2. 分割平面线框（X=橙 Y=绿 Z=紫）
+            // 2. 分割平面线框（X=橙Y=绿Z=紫）
             if (showSplitPlanes)
             {
                 foreach (var node in m_cachedNodes)
@@ -238,8 +238,8 @@ namespace Navigation
         // ── 私有辅助 ────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// 广度优先遍历临时 KD 树，把每个节点的包围盒与分割信息拷到 m_cachedNodes。
-        /// 只走到 maxDepth 层；节点本身仍会记录，只是不再继续向下展开。
+        /// 广度优先遍历临时KD树，把每个节点的包围盒与分割信息拷到m_cachedNodes
+        /// 只走到maxDepth层；节点本身仍会记录，只是不再继续向下展开
         /// </summary>
         void ExtractTreeNodes(KnnContainer container)
         {
@@ -285,8 +285,8 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 读取 NeighbourBuffer 里已经算好的邻居列表，转成"代理 → 邻居"的线段。
-        /// 邻居缓冲区由 AgentMovementSystem 填充，本组件只负责画，不重新查询。
+        /// 读取NeighbourBuffer里已经算好的邻居列表，转成"代理 → 邻居"的线段
+        /// 邻居缓冲区由AgentMovementSystem填充，本组件只负责画，不重新查询
         /// </summary>
         void ExtractNeighbourLines(NativeArray<Entity> entities, NativeArray<float3> positions)
         {
@@ -311,11 +311,11 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 在节点包围盒内绘制分割平面（轴对齐矩形，用 4 条边画）。
+        /// 在节点包围盒内绘制分割平面（轴对齐矩形，用4条边画）
         ///
-        /// 平面的法线是分割轴，因此另外两个轴取包围盒的 Min/Max 即可得到矩形四角；
-        /// 分割轴上的坐标用 PartitionCoordinate。滑动中点算法在点集偏斜时会把分割坐标
-        /// 贴到包围盒边界上，这里 clamp 一下，避免画出退化成一条线的矩形。
+        /// 平面的法线是分割轴，因此另外两个轴取包围盒的Min/Max即可得到矩形四角；
+        /// 分割轴上的坐标用PartitionCoordinate滑动中点算法在点集偏斜时会把分割坐标
+        /// 贴到包围盒边界上，这里clamp一下，避免画出退化成一条线的矩形
         /// </summary>
         /// <param name="boundsMin">节点包围盒最小角点</param>
         /// <param name="boundsMax">节点包围盒最大角点</param>
@@ -328,7 +328,7 @@ namespace Navigation
             Vector3 c0, c1, c2, c3;
             if (axis == 0)
             {
-                // 法线为 X：矩形落在 YZ 平面上
+                // 法线为X：矩形落在YZ平面上
                 c0 = new Vector3(c, boundsMin.y, boundsMin.z);
                 c1 = new Vector3(c, boundsMin.y, boundsMax.z);
                 c2 = new Vector3(c, boundsMax.y, boundsMax.z);
@@ -336,7 +336,7 @@ namespace Navigation
             }
             else if (axis == 1)
             {
-                // 法线为 Y：矩形落在 XZ 平面上
+                // 法线为Y：矩形落在XZ平面上
                 c0 = new Vector3(boundsMin.x, c, boundsMin.z);
                 c1 = new Vector3(boundsMax.x, c, boundsMin.z);
                 c2 = new Vector3(boundsMax.x, c, boundsMax.z);
@@ -344,7 +344,7 @@ namespace Navigation
             }
             else
             {
-                // 法线为 Z：矩形落在 XY 平面上
+                // 法线为Z：矩形落在XY平面上
                 c0 = new Vector3(boundsMin.x, boundsMin.y, c);
                 c1 = new Vector3(boundsMax.x, boundsMin.y, c);
                 c2 = new Vector3(boundsMax.x, boundsMax.y, c);

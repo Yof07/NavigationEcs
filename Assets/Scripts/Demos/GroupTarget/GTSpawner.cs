@@ -10,7 +10,7 @@ using Unity.Transforms;
 namespace Navigation.Demos
 {
     /// <summary>
-    /// 存储代理 Prefab 对应的 ECS Entity 引用，供 GTSpawnerSystem 读取并批量实例化代理。
+    /// 存储代理Prefab对应的ECS Entity引用，供GTSpawnerSystem读取并批量实例化代理
     /// </summary>
     public struct GTAgentPrefabComponent : IComponentData
     {
@@ -18,22 +18,22 @@ namespace Navigation.Demos
     }
 
     /// <summary>
-    /// GroupTarget 场景的代理生成器 Authoring 组件。
-    /// 在 SubScene 烘焙阶段将 mAgentPrefab 转换为 ECS Entity 引用，
-    /// 由 GTSpawnerSystem 在运行时读取并批量生成持续追踪目标球的代理。
+    /// GroupTarget场景的代理生成器Authoring组件
+    /// 在SubScene烘焙阶段将mAgentPrefab转换为ECS Entity引用，
+    /// 由GTSpawnerSystem在运行时读取并批量生成持续追踪目标球的代理
     /// </summary>
     public class GTSpawner : MonoBehaviour
     {
         /// <summary> 
-        /// 代理 Prefab（需包含 AgentAuthoring 和 ConstantTargetFollower 所需组件），
-        /// 即 GroupTarget 场景中的 Agent 预制体，代理的"皮套"
+        /// 代理Prefab（需包含AgentAuthoring和ConstantTargetFollower所需组件），
+        /// 即GroupTarget场景中的Agent预制体，代理的"皮套"
         /// </summary>
         public GameObject mAgentPrefab;
 
         /// <summary>
-        /// 每圈同心圆的半径与代理数量，可在 Inspector 里增删。
-        /// 默认 2 圈：20 + 20 = 40 个代理。
-        /// 改完需要重新烘焙（保存 SubScene 或重进 Play）。
+        /// 每圈同心圆的半径与代理数量，可在Inspector里增删
+        /// 默认2圈：20 + 20 = 40个代理
+        /// 改完需要重新烘焙（保存SubScene或重进Play）
         /// </summary>
         public SpawnRing[] Rings =
         {
@@ -45,12 +45,12 @@ namespace Navigation.Demos
         {
             public override void Bake(GTSpawner authoring)
             {
-                // WorldSpace：Spawner 自身不需要跟随父节点变换
+                // WorldSpace：Spawner自身不需要跟随父节点变换
                 var entity = GetEntity(TransformUsageFlags.WorldSpace);
-                // Dynamic：代理在运行时会移动，需要动态 Transform
-                // 烘焙的是一个 prefab 类型的资产，authoring.mAgentPrefab 指向一个 prefab 类型的资产
-                // 烘焙它的 baker 是 AgentAuthoring 里的 AgentBaker
-                // 这句代码执行完后，对于 authoring.mAgentPrefab 这个 prefab 类型的资产，它已经有了实体，但还没被烘焙
+                // Dynamic：代理在运行时会移动，需要动态Transform
+                // 烘焙的是一个prefab类型的资产，authoring.mAgentPrefab指向一个prefab类型的资产
+                // 烘焙它的baker是AgentAuthoring里的AgentBaker
+                // 这句代码执行完后，对于authoring.mAgentPrefab这个prefab类型的资产，它已经有了实体，但还没被烘焙
                 var agentEntity = GetEntity(authoring.mAgentPrefab, TransformUsageFlags.Dynamic);
 
                 var prefCom = new GTAgentPrefabComponent()
@@ -60,7 +60,7 @@ namespace Navigation.Demos
 
                 AddComponent(entity, prefCom);
 
-                // 把 Inspector 的环配置写进 buffer，供 GTSpawnerSystem 读取
+                // 把Inspector的环配置写进buffer，供GTSpawnerSystem读取
                 DynamicBuffer<SpawnRing> rings = AddBuffer<SpawnRing>(entity);
                 SpawnRing[] ringConfig = authoring.Rings;
 

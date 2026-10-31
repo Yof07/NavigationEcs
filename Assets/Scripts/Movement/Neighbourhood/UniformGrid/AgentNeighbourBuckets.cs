@@ -4,39 +4,39 @@ using Unity.Mathematics;
 namespace Navigation
 {
     /// <summary>
-    /// 均匀网格的空间布局：世界 XZ 左下角原点、cell 边长、两个方向上的 cell 数量。
-    /// 由调用方根据导航网格的世界包围盒 + UniformGridQuerySettings.CellSize 构造一次，
-    /// Build / Query 共用，避免重复计算。
-    /// 与导航网格的 NodeSize 无关：cell 尺寸是邻居查询自己的参数。
+    /// 均匀网格的空间布局：世界XZ左下角原点、cell边长、两个方向上的cell数量
+    /// 由调用方根据导航网格的世界包围盒 + UniformGridQuerySettings.CellSize构造一次，
+    /// Build / Query共用，避免重复计算
+    /// 与导航网格的NodeSize无关：cell尺寸是邻居查询自己的参数
     /// </summary>
     public struct NeighbourGridLayout
     {
-        /// <summary>世界 XZ 平面上的左下角（最小 x / 最小 z）。</summary>
+        /// <summary>世界XZ平面上的左下角（最小x / 最小z）</summary>
         public float3 Origin;
 
-        /// <summary>cell 的世界边长（米），必须大于 0。</summary>
+        /// <summary>cell的世界边长（米），必须大于0</summary>
         public float CellSize;
 
-        /// <summary>X 方向（世界 X）的 cell 数量，与导航网格的 NodeXCount 对应。</summary>
+        /// <summary>X方向（世界X）的cell数量，与导航网格的NodeXCount对应</summary>
         public int CellCountX;
 
-        /// <summary>Y 方向（对应世界 Z）的 cell 数量，与导航网格的 NodeYCount 对应。</summary>
+        /// <summary>Y方向（对应世界Z）的cell数量，与导航网格的NodeYCount对应</summary>
         public int CellCountY;
 
-        /// <summary>cell 总数。</summary>
+        /// <summary>cell总数</summary>
         public int TotalCellCount => CellCountX * CellCountY;
     }
 
     /// <summary>
-    /// 均匀网格邻居查询：每帧用两遍计数排序把代理索引按 cell 铺平，
-    /// 查询时只扫目标代理周围的若干格，而不是和全场代理比距离。
-    /// 纯数据操作，不依赖 SystemState / lookup，可在主线程或 Job 里调用。
+    /// 均匀网格邻居查询：每帧用两遍计数排序把代理索引按cell铺平，
+    /// 查询时只扫目标代理周围的若干格，而不是和全场代理比距离
+    /// 纯数据操作，不依赖SystemState / lookup，可在主线程或Job里调用
     /// </summary>
     public static class AgentNeighbourBuckets
     {
         /// <summary>
-        /// 构造布局。worldWidth / worldHeight 是导航网格覆盖的世界范围（X / Z 方向），
-        /// cellSize 来自 UniformGridQuerySettings；两者都与 NodeSize 无关。
+        /// 构造布局worldWidth / worldHeight是导航网格覆盖的世界范围（X / Z方向），
+        /// cellSize来自UniformGridQuerySettings；两者都与NodeSize无关
         /// </summary>
         public static NeighbourGridLayout CreateLayout(float3 _origin, float _worldWidth, float _worldHeight, float _cellSize)
         {
@@ -54,12 +54,12 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 世界坐标 → 一维 cell 下标；越界坐标 clamp 到边缘 cell。
-        /// 只使用 x/z，忽略 y；与导航网格的节点索引无关。
+        /// 世界坐标 → 一维cell下标；越界坐标clamp到边缘cell
+        /// 只使用x/z，忽略y；与导航网格的节点索引无关
         /// </summary>
         public static int CellIndexOf(float3 _position, in NeighbourGridLayout _layout)
         {
-            // 布局非法时直接返回 0，避免下面 clamp 的 min > max
+            // 布局非法时直接返回0，避免下面clamp的min > max
             if (_layout.CellCountX <= 0 || _layout.CellCountY <= 0)
             {
                 return 0;
@@ -67,12 +67,12 @@ namespace Navigation
 
             float invCellSize = 1f / math.max(_layout.CellSize, 1e-4f);
 
-            // 连续世界坐标 → 连续 cell 坐标（区间归属，所以用 floor）。
-            // 网格 Y 对应世界 Z，与导航网格的 WorldPosToNode 保持一致。
+            // 连续世界坐标 → 连续cell坐标（区间归属，所以用floor）
+            // 网格Y对应世界Z，与导航网格的WorldPosToNode保持一致
             float cellX = math.floor((_position.x - _layout.Origin.x) * invCellSize);
             float cellY = math.floor((_position.z - _layout.Origin.z) * invCellSize);
 
-            // 先 clamp 再转 int：避免超大/超小浮点直接转 int 的未定义行为
+            // 先clamp再转int：避免超大/超小浮点直接转int的未定义行为
             int x = (int)math.clamp(cellX, 0f, (float)(_layout.CellCountX - 1));
             int y = (int)math.clamp(cellY, 0f, (float)(_layout.CellCountY - 1));
 
@@ -80,18 +80,18 @@ namespace Navigation
         }
         
         /// <summary>
-        /// 建桶：两遍计数排序 + 前缀和。
+        /// 建桶：两遍计数排序 + 前缀和
         /// 前置条件：
         ///   _cellStart.Length == layout.TotalCellCount + 1；
-        ///   _cellItems.Length == _positions.Length，_cellItems 存储的是代理的索引。
-        /// 构建过程中 _cellStart 的含义会变化：
-        ///   计数后 = 每格数量；前缀和后 = 每格结束偏移；散射后 = 每格起始偏移。
-        /// 结束后第 b 格的成员是 _cellItems[_cellStart[b] .. _cellStart[b + 1])，
-        /// 且格内按代理索引升序；_cellStart[TotalCellCount] 是最后一格的结束哨兵。
+        ///   _cellItems.Length == _positions.Length，_cellItems存储的是代理的索引
+        /// 构建过程中_cellStart的含义会变化：
+        ///   计数后 = 每格数量；前缀和后 = 每格结束偏移；散射后 = 每格起始偏移
+        /// 结束后第b格的成员是_cellItems[_cellStart[b] .. _cellStart[b + 1])，
+        /// 且格内按代理索引升序；_cellStart[TotalCellCount] 是最后一格的结束哨兵
         /// </summary>
         public static void Build(NativeArray<float3> _positions, in NeighbourGridLayout _layout, NativeArray<int> _cellStart, NativeArray<int> _cellItems)
         {
-            // 1) 清空：cellStart[b] 先暂存第 b 格的数量（索引 TotalCellCount 最后当哨兵）
+            // 1) 清空：cellStart[b] 先暂存第b格的数量（索引TotalCellCount最后当哨兵）
             for (int i = 0; i <= _layout.TotalCellCount; i++)
                 _cellStart[i] = 0;
 
@@ -102,12 +102,12 @@ namespace Navigation
                 _cellStart[cell]++;
             }
             
-            // 计算前缀和：cellStart[b] 变成第 b 格的结束偏移
+            // 计算前缀和：cellStart[b] 变成第b格的结束偏移
             for (int i = 1; i < _layout.TotalCellCount; i++)  
                 _cellStart[i] += _cellStart[i - 1];
             
-            // 4) 倒序散射：每写一个就把结束偏移往前挪一格。
-            //    结束后 cellStart[b] 自动变回起始偏移，且格内索引升序。
+            // 4) 倒序散射：每写一个就把结束偏移往前挪一格
+            //    结束后cellStart[b] 自动变回起始偏移，且格内索引升序
             for (int i = _positions.Length - 1; i >= 0; i--)
             {
                 int cell = CellIndexOf(_positions[i], _layout);
@@ -115,21 +115,21 @@ namespace Navigation
             }
             
             // 5) 最后一格的结束偏移 = 代理总数（哨兵），即最后一格的终点下标
-            // 如 _cellStart[1] 代表第 2 格的起始下标、第 1 格的终点下标，_cellStart[2] 代表第 3 格的起始下标...
-            // 那么如果 _cellStart 的长度不 +1 的话，就会导致存储不了最后一个格的终点下标
+            // 如_cellStart[1] 代表第2格的起始下标、第1格的终点下标，_cellStart[2] 代表第3格的起始下标
+            // 那么如果_cellStart的长度不 +1的话，就会导致存储不了最后一个格的终点下标
             _cellStart[_layout.TotalCellCount] = _positions.Length;
         }
 
         /// <summary>
-        /// 查询某个代理半径内的最近邻居，最多写入 _bestIndices.Length 个。
-        /// 结果按距离升序；距离相同按代理索引升序。返回实际写入数量。
+        /// 查询某个代理半径内的最近邻居，最多写入_bestIndices.Length个
+        /// 结果按距离升序；距离相同按代理索引升序返回实际写入数量
         ///
-        /// 扫描方式：rings = ceil(radius / cellSize)，以自己所在 cell 为中心扫一个
+        /// 扫描方式：rings = ceil(radius / cellSize)，以自己所在cell为中心扫一个
         /// (2 * rings + 1)² 的方阵；每个格子通过 [cellStart[cell], cellStart[cell + 1])
-        /// 取候选，再按距离和半径过滤。
+        /// 取候选，再按距离和半径过滤
         ///
-        /// 注意：本函数只排除自身；是否排除「已到达目的地且 IgnoreAvoidanceWhenDestReached」
-        /// 的代理由调用方的 IsValidNeighbour 负责，与 KNN 分支保持同一个过滤器。
+        /// 注意：本函数只排除自身；是否排除「已到达目的地且IgnoreAvoidanceWhenDestReached」
+        /// 的代理由调用方的IsValidNeighbour负责，与KNN分支保持同一个过滤器
         /// </summary>
         public static int Query(
             NativeArray<float3> _positions,
@@ -141,7 +141,7 @@ namespace Navigation
             NativeArray<int> _bestIndices,
             NativeArray<float> _bestDistSq)
         {
-            int cap = _bestIndices.Length;  // cap 即 maxK，最多保留 cap 个邻居
+            int cap = _bestIndices.Length;  // cap即maxK，最多保留cap个邻居
 
             if (cap <= 0 ||
                 _bestDistSq.Length < cap ||
@@ -157,7 +157,7 @@ namespace Navigation
             float radiusSq = _radius * _radius;
             float cellSize = math.max(_layout.CellSize, 1e-4f);
 
-            // 最大扫描圈数；先 clamp 浮点再转 int，避免超大半径直接转 int 的未定义行为
+            // 最大扫描圈数；先clamp浮点再转int，避免超大半径直接转int的未定义行为
             float maxRings = math.max(_layout.CellCountX, _layout.CellCountY);
             int rings = (int)math.clamp(math.ceil(_radius / cellSize), 0f, maxRings);
 
@@ -185,7 +185,7 @@ namespace Navigation
                         continue;
                     }
 
-                    // 获取要遍历的格子在 _cellItems 中的起始和结束下标，以供后续在能遍历
+                    // 获取要遍历的格子在_cellItems中的起始和结束下标，以供后续在能遍历
                     int cell = cellX + cellY * _layout.CellCountX;
                     int start = _cellStart[cell];
                     int end = _cellStart[cell + 1];
@@ -235,7 +235,7 @@ namespace Navigation
             return count;
         }
 
-        /// <summary>候选比较：距离更近者优先；距离相同则索引更小者优先。</summary>
+        /// <summary>候选比较：距离更近者优先；距离相同则索引更小者优先</summary>
         static bool IsBetter(float _distSq, int _index, float _otherDistSq, int _otherIndex)
         {
             return _distSq < _otherDistSq || (_distSq == _otherDistSq && _index < _otherIndex);

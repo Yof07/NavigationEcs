@@ -2,30 +2,30 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-// 注意：命名空间不能叫 Navigation.Input —— 会遮住 UnityEngine.Input，
-// 让工程里其它文件的 Input.GetKeyDown 解析失败。统一放 Navigation。
+// 注意：命名空间不能叫Navigation.Input —— 会遮住UnityEngine.Input，
+// 让工程里其它文件的Input.GetKeyDown解析失败统一放Navigation
 namespace Navigation
 {
     /// <summary>
-    /// 输入基底：把新 Input System 的动作收成一个只读门面，
-    /// 其它脚本（框选、相机、命令）只读属性，不直接碰 InputAction。
+    /// 输入基底：把新Input System的动作收成一个只读门面，
+    /// 其它脚本（框选、相机、命令）只读属性，不直接碰InputAction
     ///
     /// 动作定义在 <c>Assets/Input/GlobalInput.inputactions</c>（map = "Gameplay"），
-    /// 并勾了 Generate C# Class，所以这里用的是生成的强类型包装 <see cref="GlobalInput"/>：
-    /// 名字写错会在编译期报错，不用字符串查找，也不需要在 Inspector 上拖资源引用。
+    /// 并勾了Generate C# Class，所以这里用的是生成的强类型包装 <see cref="GlobalInput"/>：
+    /// 名字写错会在编译期报错，不用字符串查找，也不需要在Inspector上拖资源引用
     ///
-    /// 用法：场景里放一个空 GameObject，挂上本组件（建议做成 Prefab，两个场景各放一份）。
+    /// 用法：场景里放一个空GameObject，挂上本组件（建议做成Prefab，两个场景各放一份）
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class InputActionsManager : MonoBehaviour
     {
-        /// <summary>全局访问点。场景里只允许一个，重复挂载会被 DisallowMultipleComponent 拦住。</summary>
+        /// <summary>全局访问点场景里只允许一个，重复挂载会被DisallowMultipleComponent拦住</summary>
         public static InputActionsManager Instance { get; private set; }
 
-        /// <summary>生成的包装类实例；它内部从 .inputactions 的 JSON 构建出 InputActionAsset</summary>
+        /// <summary>生成的包装类实例；它内部从 .inputactions的JSON构建出InputActionAsset</summary>
         private GlobalInput m_Input;
 
-        /// <summary>Gameplay map；Enable/Disable 整张 map 即可一次开关所有动作</summary>
+        /// <summary>Gameplay map；Enable/Disable整张map即可一次开关所有动作</summary>
         private InputActionMap m_Map;
 
         /// <summary>指针屏幕坐标（像素）</summary>
@@ -37,7 +37,7 @@ namespace Navigation
         /// <summary>右键：下令</summary>
         private InputAction m_Command;
 
-        /// <summary>滚轮：缩放（每格约 120）</summary>
+        /// <summary>滚轮：缩放（每格约120）</summary>
         private InputAction m_Scroll;
 
         /// <summary>中键按住：拖拽平移</summary>
@@ -83,7 +83,7 @@ namespace Navigation
 
             Instance = this;
 
-            // 包装类自己持有 asset（从 JSON 构建），所以不需要 Resources.Load
+            // 包装类自己持有asset（从JSON构建），所以不需要Resources.Load
             m_Input = new GlobalInput();
             m_Map = m_Input.Gameplay.Get();
 
@@ -107,7 +107,7 @@ namespace Navigation
 
         private void OnDestroy()
         {
-            // 包装类的 asset 是 new 出来的，必须 Dispose，否则每次进 Play 都泄漏一份
+            // 包装类的asset是new出来的，必须Dispose，否则每次进Play都泄漏一份
             m_Input?.Dispose();
 
             if (Instance == this)

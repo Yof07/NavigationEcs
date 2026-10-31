@@ -4,23 +4,23 @@ using Unity.Entities;
 namespace Navigation
 {
     /// <summary>
-    /// 「网格数据变了」的订阅者：把未到达代理的 RequestGiven 置 false，让它们重新排队。
+    /// 「网格数据变了」的订阅者：把未到达代理的RequestGiven置false，让它们重新排队
     ///
-    /// 定位：排在 CheckObstaclesSystem（①，发布 Grid.Version）之后、
+    /// 定位：排在CheckObstaclesSystem（①，发布Grid.Version）之后、
     /// PathfindingRequestSystem（④，收集请求）之前，所以**同帧**生效；
-    /// 而它自己属于 Movement 模块，能直接读 PathFollower，不需要 Grid 反向依赖上层。
+    /// 而它自己属于Movement模块，能直接读PathFollower，不需要Grid反向依赖上层
     ///
     /// 为什么是独立系统而不是塞进别的系统：
-    /// - 放进 CheckObstacles（Grid）：会让 Grid 引用 Pathfinding/Movement 的类型；
-    /// - 放进 Request（Pathfinding）：需要跨层读 PathFollower；
-    /// - 放进 AgentMovement（⑥）：Request 已经跑过，晚一帧。
-    /// 后续若有别的「网格变更」订阅者（流场表作废、UI、调试可视化），也在这里接。
+    /// - 放进CheckObstacles（Grid）：会让Grid引用Pathfinding/Movement的类型；
+    /// - 放进Request（Pathfinding）：需要跨层读PathFollower；
+    /// - 放进AgentMovement（⑥）：Request已经跑过，晚一帧
+    /// 后续若有别的「网格变更」订阅者（流场表作废、UI、调试可视化），也在这里接
     /// </summary>
     [UpdateAfter(typeof(CheckObstaclesSystem))]
     [UpdateBefore(typeof(PathfindingRequestSystem))]
     partial struct ReRequestOnGridRefreshSystem : ISystem
     {
-        // 已处理到的网格数据版本。
+        // 已处理到的网格数据版本
         private int m_LastConsumedVersion;
 
         [BurstCompile]

@@ -7,9 +7,9 @@ using UnityEngine;
 namespace Navigation.Demos
 {
     /// <summary>
-    /// GroupTarget 场景中目标球的控制器（普通 MonoBehaviour，挂载在场景外的 GameObject 上）。
-    /// 通过方向键移动 ECS 中的 TargetSphereMarker Entity，所有挂载 ConstantTargetFollower 的代理
-    /// 会自动检测到目标位置变化并重新寻路。
+    /// GroupTarget场景中目标球的控制器（普通MonoBehaviour，挂载在场景外的GameObject上）
+    /// 通过方向键移动ECS中的TargetSphereMarker Entity，所有挂载ConstantTargetFollower的代理
+    /// 会自动检测到目标位置变化并重新寻路
     /// </summary>
     public class MoveSphere : MonoBehaviour
     {
@@ -20,7 +20,7 @@ namespace Navigation.Demos
 
         void Start()
         {
-            // 延迟 1 秒初始化，等待 ECS World 和 SubScene 完成烘焙
+            // 延迟1秒初始化，等待ECS World和SubScene完成烘焙
             StartCoroutine(Init());
         }
 
@@ -28,7 +28,7 @@ namespace Navigation.Demos
         {
             yield return new WaitForSeconds(1);
             EM = World.DefaultGameObjectInjectionWorld.EntityManager;
-            // 查询场景中唯一的 TargetSphereMarker 单例 Entity，只要挂了 TargetSphereMarker 就能筛选出来
+            // 查询场景中唯一的TargetSphereMarker单例Entity，只要挂了TargetSphereMarker就能筛选出来
             var q = EM.CreateEntityQuery(ComponentType.ReadOnly<TargetSphereMarker>());
             SphereEntity = q.GetSingletonEntity();
             q.Dispose();
@@ -42,7 +42,7 @@ namespace Navigation.Demos
             {
                 LocalTransform lt = EM.GetComponentData<LocalTransform>(SphereEntity);
 
-                // 方向键控制目标球在 XZ 平面移动
+                // 方向键控制目标球在XZ平面移动
                 if (Input.GetKey(KeyCode.RightArrow))
                 {
                     lt.Position.x += Time.deltaTime * Speed;

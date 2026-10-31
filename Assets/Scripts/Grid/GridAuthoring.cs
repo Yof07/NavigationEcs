@@ -5,8 +5,8 @@ using Unity.Mathematics;
 namespace Navigation
 {
     /// <summary>
-    /// 导航网格的 Authoring 组件（挂载在 Unity GameObject 上）。
-    /// 在 SubScene 烘焙阶段，GridBaker 将 Inspector 参数转换为 ECS 组件，
+    /// 导航网格的Authoring组件（挂载在Unity GameObject上）
+    /// 在SubScene烘焙阶段，GridBaker将Inspector参数转换为ECS组件，
     /// 并初始化所有网格节点（默认全部可通行）
     /// </summary>
     public class GridAuthoring : MonoBehaviour
@@ -18,7 +18,7 @@ namespace Navigation
         /// <summary>每个节点的边长（越小精度越高，但节点数量呈平方增长）</summary>
         public float mNodeSize;
 
-        /// <summary>RVO 避障时每个代理考虑的最大邻居数量（推荐 4-10）</summary>
+        /// <summary>RVO避障时每个代理考虑的最大邻居数量（推荐4-10）</summary>
         [Tooltip("Number of max neighbors to consider when calculating for avoidance")]
         public int AvoidanceNeighbours;
 
@@ -30,7 +30,7 @@ namespace Navigation
         [Tooltip("What to do when agent and target point are inaccessible to each other")]
         public DifferentIslandsPolicy DifferentIslandsPolicy;
 
-        /// <summary>目标节点不可通行时，BFS 搜索可通行节点的最大范围（推荐 10-20）</summary>
+        /// <summary>目标节点不可通行时，BFS搜索可通行节点的最大范围（推荐10-20）</summary>
         [Tooltip("if target is an inaccessible node, how far to to look for an accessible node in a radial direction (best between 10-20 increasing with grid density)")]
         public int TargetInaccessibleSearchTolerance;
 
@@ -44,23 +44,23 @@ namespace Navigation
         /// <summary>惩罚节点的物理层（惩罚区域层），此层碰撞体覆盖的节点会增加寻路代价</summary>
         public LayerMask PenaltyNodes;
         
-        // 以下字段名已进 Inspector，Unity 按名字存值，勿改名。
+        // 以下字段名已进Inspector，Unity按名字存值，勿改名
 
-        /// <summary>邻居查询方式；默认 KdTree（0）。</summary>
+        /// <summary>邻居查询方式；默认KdTree（0）</summary>
         [Tooltip("Neighbour query backend. KdTree = exact k-NN; UniformGrid = uniform grid buckets")]
         public NeighbourQueryMethod NeighbourQueryMethod;
 
-        /// <summary>均匀网格的 cell 边长（米）。</summary>
+        /// <summary>均匀网格的cell边长（米）</summary>
         [Tooltip("Uniform grid cell size in world units (meters), independent of mNodeSize")]
         public float UniformCellSize = 2f;
 
-        /// <summary>均匀网格的查询半径（米）。</summary>
+        /// <summary>均匀网格的查询半径（米）</summary>
         [Tooltip("Neighbour query radius in world units (meters); should cover 2 x max agent radius + margin")]
         public float UniformQueryRadius = 2f;
 
 
         /// <summary>
-        /// Baker 内部类：将 GridAuthoring 参数烘焙为 ECS 单例组件，并初始化网格节点数组
+        /// Baker内部类：将GridAuthoring参数烘焙为ECS单例组件，并初始化网格节点数组
         /// </summary>
         public class GridBaker : Baker<GridAuthoring>
         {
@@ -68,7 +68,7 @@ namespace Navigation
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
 
-                // 保存 Grid Entity 引用供 GridUtility 外部访问
+                // 保存Grid Entity引用供GridUtility外部访问
                 GridUtility.SetGridEntity(entity);
 
                 // 根据网格尺寸和节点大小计算节点数量
@@ -78,7 +78,7 @@ namespace Navigation
                     NodeYCount = (int)math.round(authoring.mGridSize.y / authoring.mNodeSize),
                     NodeSize = authoring.mNodeSize,
                     RecalcPathsAfterGridRefresh = authoring.RecalcPathsAfterGridRefresh,
-                    InaccessibleLMIndex = authoring.InaccessibleNodes.value,    // LayerMask 转 int
+                    InaccessibleLMIndex = authoring.InaccessibleNodes.value,    // LayerMask转int
                     PenaltyLMIndex = authoring.PenaltyNodes.value,
                     DifferentIslandsPolicy = authoring.DifferentIslandsPolicy,
                     TargetInaccessibleSearchTolerance = authoring.TargetInaccessibleSearchTolerance,
@@ -101,7 +101,7 @@ namespace Navigation
                     QueryRadius = authoring.UniformQueryRadius,
                 };
 
-                // 添加 Grid 核心组件
+                // 添加Grid核心组件
                 AddComponent(entity, grid);
                 AddComponent(entity, pathfindingParameters);
                 AddComponent(entity, neighbourQuerySettings);
@@ -109,9 +109,9 @@ namespace Navigation
 
                 // 添加各种缓冲区（初始为空）
                 AddBuffer<PathfindingRequestQueue>(entity);  // 寻路请求队列
-                AddBuffer<NodeIslandBuffer>(entity);  // 岛屿 ID 缓冲区
+                AddBuffer<NodeIslandBuffer>(entity);  // 岛屿ID缓冲区
 
-                // 初始化节点数组（NodeXCount × NodeYCount 个节点，全部默认可通行）
+                // 初始化节点数组（NodeXCount × NodeYCount个节点，全部默认可通行）
                 DynamicBuffer<GridNodesBuffer> nodes = AddBuffer<GridNodesBuffer>(entity);
                 nodes.Length = grid.NodeXCount * grid.NodeYCount;
 
@@ -122,7 +122,7 @@ namespace Navigation
                 {
                     for (int y = 0; y < grid.NodeYCount; y++)
                     {
-                        // 创建默认节点（可通行，无惩罚，G/H 代价为0）
+                        // 创建默认节点（可通行，无惩罚，G/H代价为0）
                         GridNode newNode = new GridNode()
                         {
                             X = x,
@@ -139,7 +139,7 @@ namespace Navigation
                         nodes[index] = new GridNodesBuffer() { Node = newNode };
                     }
                 }
-                // 注：CheckObstaclesSystem 在运行时会更新节点的 IsAccessible 和 Penalty
+                // 注：CheckObstaclesSystem在运行时会更新节点的IsAccessible和Penalty
             }
         }
     }

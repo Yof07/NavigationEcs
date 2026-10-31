@@ -3,20 +3,20 @@ using UnityEngine;
 namespace Navigation
 {
     /// <summary>
-    /// RTS 相机：焦点 + 球坐标模型。
+    /// RTS相机：焦点 + 球坐标模型
     ///
-    /// 相机的位置不用直接拖 Transform 来维护，而是由三个量算出来：
-    /// - Pivot    焦点，地面上的关注点（平移改它）
-    /// - Distance 相机到焦点的距离（缩放改它）
-    /// - Yaw      水平朝向角（Q/E 改它），Pitch 固定不变
+    /// 相机的位置不用直接拖Transform来维护，而是由三个量算出来：
+    /// - Pivot焦点，地面上的关注点（平移改它）
+    /// - Distance相机到焦点的距离（缩放改它）
+    /// - Yaw水平朝向角（Q/E改它），Pitch固定不变
     ///
     /// 每帧：position = pivot - Euler(pitch, yaw, 0) * forward * distance
-    /// 三者互不干扰，所以平移/缩放/旋转可以同时进行而不会互相带偏。
+    /// 三者互不干扰，所以平移/缩放/旋转可以同时进行而不会互相带偏
     ///
-    /// 输入只读 InputActionsManager 的属性，不直接依赖 Input System 的类型；
-    /// 以后换输入方案（比如退回旧 Input API）不需要动这个脚本。
+    /// 输入只读InputActionsManager的属性，不直接依赖Input System的类型；
+    /// 以后换输入方案（比如退回旧Input API）不需要动这个脚本
     ///
-    /// 挂在 Main Camera 上即可。
+    /// 挂在Main Camera上即可
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class CameraController : MonoBehaviour
@@ -63,7 +63,7 @@ namespace Navigation
         [Tooltip("焦点允许的最大 X / Z")]
         [SerializeField] private Vector2 m_PivotMax = new Vector2(40f, 40f);
 
-        /// <summary>相机组件，Awake 里缓存，避免每帧 GetComponent</summary>
+        /// <summary>相机组件，Awake里缓存，避免每帧GetComponent</summary>
         private Camera m_Camera;
 
         /// <summary>上一帧的指针位置；和本帧相减得到像素位移（中键拖拽平移用）</summary>
@@ -71,7 +71,7 @@ namespace Navigation
 
         // ----- 「期望值」：输入直接修改这三个，代表玩家想去的位置/距离/角度 -----
 
-        /// <summary>期望的焦点（世界坐标，Y 恒为 0 的地面点）</summary>
+        /// <summary>期望的焦点（世界坐标，Y恒为0的地面点）</summary>
         private Vector3 m_TargetPivot;
 
         /// <summary>期望的相机距离（米）</summary>
@@ -81,7 +81,7 @@ namespace Navigation
         private float m_TargetYaw;
 
         // ----- 「当前值」：每帧朝期望值平滑逼近，实际用来算相机位姿 -----
-        // 分开存是为了缓动：滚轮一格会跳几十毫秒的变化，直接套到相机上会显得顿。
+        // 分开存是为了缓动：滚轮一格会跳几十毫秒的变化，直接套到相机上会显得顿
 
         /// <summary>当前实际使用的焦点</summary>
         private Vector3 m_CurrentPivot;
@@ -92,7 +92,7 @@ namespace Navigation
         /// <summary>当前实际使用的水平角</summary>
         private float m_CurrentYaw;
 
-        // ----- SmoothDamp 需要的速度缓存（不要手动改，由函数自己维护）-----
+        // ----- SmoothDamp需要的速度缓存（不要手动改，由函数自己维护）-----
 
         /// <summary>焦点平滑的速度缓存</summary>
         private Vector3 m_PivotVelocity;
@@ -143,15 +143,15 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 中键拖拽平移：把像素位移换算成世界位移。
+        /// 中键拖拽平移：把像素位移换算成世界位移
         ///
         /// 换算用的是「焦点平面处，屏幕高度方向覆盖多少世界单位」：
         ///   2 * distance * tan(fov/2) / Screen.height
         /// 透视相机下这个比值随距离变化（越远，一像素对应越长的距离），
-        /// 所以必须乘当前距离，否则拉远之后拖拽会变得跟不上手。
+        /// 所以必须乘当前距离，否则拉远之后拖拽会变得跟不上手
         ///
         /// 方向用「水平面上的前向」而不是相机自身前向：相机是斜的，
-        /// 直接用相机前向会让拖拽带一个向下的分量，表现是越拖越往地里钻。
+        /// 直接用相机前向会让拖拽带一个向下的分量，表现是越拖越往地里钻
         /// </summary>
         private void HandlePan(InputActionsManager _input, Vector2 _pointer)
         {
@@ -178,8 +178,8 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 滚轮缩放。步长按距离成比例（乘 m_TargetDistance），
-        /// 所以近处每次只挪一点、远处一次跨度大，手感比固定步长自然。
+        /// 滚轮缩放步长按距离成比例（乘m_TargetDistance），
+        /// 所以近处每次只挪一点、远处一次跨度大，手感比固定步长自然
         /// </summary>
         private void HandleZoom(InputActionsManager _input)
         {
@@ -197,8 +197,8 @@ namespace Navigation
         }
 
         /// <summary>
-        /// Q/E 旋转。只改水平角，俯角固定，
-        /// 所以转一圈下来焦点仍在原地、焦距不变。
+        /// Q/E旋转只改水平角，俯角固定，
+        /// 所以转一圈下来焦点仍在原地、焦距不变
         /// </summary>
         private void HandleRotate(InputActionsManager _input)
         {
@@ -220,9 +220,9 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 让当前值逼近期望值。三个量各自独立平滑：
-        /// 焦点用 Vector3.SmoothDamp，距离用 Mathf.SmoothDamp，
-        /// 角度用 SmoothDampAngle（走最短弧，跨越 ±180° 时不会绕一大圈）。
+        /// 让当前值逼近期望值三个量各自独立平滑：
+        /// 焦点用Vector3.SmoothDamp，距离用Mathf.SmoothDamp，
+        /// 角度用SmoothDampAngle（走最短弧，跨越 ±180° 时不会绕一大圈）
         /// </summary>
         private void SmoothTowardsTarget()
         {
@@ -241,7 +241,7 @@ namespace Navigation
 
         /// <summary>
         /// 由焦点 / 距离 / 角度算出最终位姿：
-        /// 从焦点沿「相机朝向的反方向」退 distance 米，朝向始终看焦点。
+        /// 从焦点沿「相机朝向的反方向」退distance米，朝向始终看焦点
         /// </summary>
         private void ApplyPose()
         {

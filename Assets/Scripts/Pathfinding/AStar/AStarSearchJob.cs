@@ -9,18 +9,18 @@ using Unity.Transforms;
 namespace Navigation
 {
     /// <summary>
-    /// 并行 A* 搜索 Job。
-    /// 为 Chunk 内每个寻路操作 Entity 各启动一个 AStarSearch 执行 A* 算法。
-    /// BurstCompile 标注使此 Job 被 Burst 编译为原生代码，性能大幅提升
+    /// 并行A* 搜索Job
+    /// 为Chunk内每个寻路操作Entity各启动一个AStarSearch执行A* 算法
+    /// BurstCompile标注使此Job被Burst编译为原生代码，性能大幅提升
     /// </summary>
     [BurstCompile(CompileSynchronously = true)]
     public struct AStarSearchJob : IJobParallelFor
     {
-        // 本 Chunk 中的操作 Entity 列表（只读）
+        // 本Chunk中的操作Entity列表（只读）
         [ReadOnly]
         public NativeArray<Entity> OperationEntities;
 
-        // 各种组件/缓冲区查找（NativeDisableContainerSafetyRestriction 允许并行访问）
+        // 各种组件/缓冲区查找（NativeDisableContainerSafetyRestriction允许并行访问）
         [NativeDisableContainerSafetyRestriction, ReadOnly]
         public ComponentLookup<PathfindingOperation> JobAllOperations;
 
@@ -56,7 +56,7 @@ namespace Navigation
                     GridLocalTransform = JobGridLocalTransform,
                 };
 
-                parallelSearch.Execute(); // 执行 A* 算法
+                parallelSearch.Execute(); // 执行A* 算法
             }
         }
     }

@@ -3,15 +3,15 @@
 namespace Navigation
 {
     /// <summary>
-    /// 节点吸附：目标落在不可通行节点时，从目标向外 BFS，寻找范围内最近的可通行节点。
-    /// A* 与流场共用这一份逻辑（原寄居在 AStarSearch.ExpandInaccessibleBFS）。
+    /// 节点吸附：目标落在不可通行节点时，从目标向外BFS，寻找范围内最近的可通行节点
+    /// A* 与流场共用这一份逻辑（原寄居在AStarSearch.ExpandInaccessibleBFS）
     /// </summary>
     public static class NodeSnapping
     {
         /// <summary>
-        /// 从 _targetNode 向外 BFS，在 TargetInaccessibleSearchTolerance * 10 的节点距离内
-        /// 找到距 _startingNode 最近的可通行节点。
-        /// 找不到返回 false，_closestNode 无意义。
+        /// 从_targetNode向外BFS，在TargetInaccessibleSearchTolerance * 10的节点距离内
+        /// 找到距_startingNode最近的可通行节点
+        /// 找不到返回false，_closestNode无意义
         /// </summary>
         public static bool TryFindAccessibleTarget(
             GridNode _targetNode,
@@ -38,7 +38,7 @@ namespace Navigation
                     currIndex = currCorrds.Item1 + currCorrds.Item2 * d;
                 else currIndex = currCorrds.Item2 + currCorrds.Item1 * d;
 
-                // 边界检查 + 搜索范围限制（TargetInaccessibleSearchTolerance * 10 个节点距离）
+                // 边界检查 + 搜索范围限制（TargetInaccessibleSearchTolerance * 10个节点距离）
                 if (currCorrds.Item1 < 0 || currCorrds.Item1 >= _grid.NodeXCount ||
                     currCorrds.Item2 < 0 || currCorrds.Item2 >= _grid.NodeYCount ||
                     GridUtility.NodeDistance(_targetNode, _nodes[currIndex]) > _grid.TargetInaccessibleSearchTolerance * 10) continue;

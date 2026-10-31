@@ -6,14 +6,14 @@ using UnityEngine;
 namespace Navigation
 {
     /// <summary>
-    /// 泛型最小堆（Min-Heap）数据结构，基于 NativeArray 实现，可在 Burst 编译的 Job 中使用。
-    /// 用于 A* 算法的 Open Set（优先队列），始终快速取出 F 代价最小的节点。
+    /// 泛型最小堆（Min-Heap）数据结构，基于NativeArray实现，可在Burst编译的Job中使用
+    /// 用于A* 算法的Open Set（优先队列），始终快速取出F代价最小的节点
     /// 堆操作时间复杂度：Add/Pop = O(log n)，Contains = O(1)
     ///
-    /// 注意：这里语义上是"最小堆"（F 最小的优先），但因为 GridNode.CompareTo 返回了负值（取反），
+    /// 注意：这里语义上是"最小堆"（F最小的优先），但因为GridNode.CompareTo返回了负值（取反），
     /// 内部实现实际上是最大堆逻辑，等效于最小堆的行为
     /// </summary>
-    /// <typeparam name="T">元素类型，需实现 IHeapItem 和 IEquatable 接口</typeparam>
+    /// <typeparam name="T">元素类型，需实现IHeapItem和IEquatable接口</typeparam>
     public struct NativeMinHeap<T> : IDisposable where T : unmanaged, IHeapItem<T>, IEquatable<T>
     {
         // 内部存储数组，预分配最大容量（网格节点总数）
@@ -32,14 +32,14 @@ namespace Navigation
         /// 构造函数，预分配指定容量的内存
         /// </summary>
         /// <param name="_maxHeapSize">最大容量（通常为网格节点总数）</param>
-        /// <param name="_allocator">内存分配器（Job 中使用 Allocator.Temp）</param>
+        /// <param name="_allocator">内存分配器（Job中使用Allocator.Temp）</param>
         public NativeMinHeap(int _maxHeapSize, Allocator _allocator)
         {
             mItems = new NativeArray<T>(_maxHeapSize, _allocator);
             mItemCount = 0;
         }
 
-        /// <summary>直接在指定索引写入元素（用于更新 Open Set 中节点的代价）</summary>
+        /// <summary>直接在指定索引写入元素（用于更新Open Set中节点的代价）</summary>
         public void SetItemAt(T _item, int _index)
         {
             mItems[_index] = _item;
@@ -61,7 +61,7 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 更新堆中已有元素（当节点 G 代价降低时调用，O(log n)）：
+        /// 更新堆中已有元素（当节点G代价降低时调用，O(log n)）：
         /// 先尝试向上冒泡（代价降低），再向下沉淀（理论上不会发生）
         /// </summary>
         public void UpdateItem(T _item)
@@ -83,7 +83,7 @@ namespace Navigation
 
                 T parentItem = mItems[parentIndex];
 
-                if (item.CompareTo(parentItem) > 0) // item 优先级高于 parent
+                if (item.CompareTo(parentItem) > 0) // item优先级高于parent
                 {
                     SwapItemsAt(_itemIndex, parentIndex);
                     _itemIndex = parentIndex; // 继续向上检查
@@ -94,7 +94,7 @@ namespace Navigation
 
         /// <summary>
         /// 检查堆中是否存在指定元素（O(1)）：
-        /// 通过 HeapIndex 直接访问元素并比较（HeapIndex 由堆自动维护）
+        /// 通过HeapIndex直接访问元素并比较（HeapIndex由堆自动维护）
         /// </summary>
         public bool Contains(T _item)
         {
@@ -137,15 +137,15 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 交换堆数组中两个位置上的元素，同时把各自的 HeapIndex 改成新位置。
-        /// 两个下标顺序无所谓。
+        /// 交换堆数组中两个位置上的元素，同时把各自的HeapIndex改成新位置
+        /// 两个下标顺序无所谓
         /// </summary>
         private void SwapItemsAt(int _index1, int _index2)
         {
             T item1 = mItems[_index1];
             T item2 = mItems[_index2];
 
-            // 元素换了位置，HeapIndex 跟着指向新位置
+            // 元素换了位置，HeapIndex跟着指向新位置
             item1.HeapIndex = _index2;
             item2.HeapIndex = _index1;
 
@@ -155,14 +155,14 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 弹出并返回堆顶元素（优先级最高 = F 代价最小，O(log n)）：
+        /// 弹出并返回堆顶元素（优先级最高 = F代价最小，O(log n)）：
         /// 1. 取堆顶元素（index 0）
         /// 2. 将末尾元素移到堆顶
         /// 3. 向下沉淀（BubbleDown）维持堆性质
         /// </summary>
         public T PopFirstItem()
         {
-            T firstItem = mItems[0]; // 堆顶 = 最高优先级（F 最小）
+            T firstItem = mItems[0]; // 堆顶 = 最高优先级（F最小）
             mItemCount--;
 
             // 将末尾元素移到堆顶替代被弹出的元素
@@ -186,7 +186,7 @@ namespace Navigation
             return s;
         }
 
-        /// <summary>释放内部 NativeArray 内存（必须在使用完毕后调用）</summary>
+        /// <summary>释放内部NativeArray内存（必须在使用完毕后调用）</summary>
         public void Dispose()
         {
             mItems.Dispose();
@@ -195,8 +195,8 @@ namespace Navigation
 
     /// <summary>
     /// 最小堆元素接口，要求元素：
-    /// 1. 实现 IComparable 用于堆排序
-    /// 2. 维护 HeapIndex 属性用于 O(1) 定位元素在堆中的位置
+    /// 1. 实现IComparable用于堆排序
+    /// 2. 维护HeapIndex属性用于O(1) 定位元素在堆中的位置
     /// </summary>
     public interface IHeapItem<T> : IComparable<T>
     {

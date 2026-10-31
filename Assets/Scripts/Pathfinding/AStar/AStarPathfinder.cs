@@ -8,13 +8,13 @@ using Unity.Transforms;
 namespace Navigation
 {
     /// <summary>
-    /// A* 算法的对外入口：为一批寻路操作调度并行搜索 Job。
-    /// 具体搜索逻辑在 AStarSearch 里，本类只负责装配与调度。
+    /// A* 算法的对外入口：为一批寻路操作调度并行搜索Job
+    /// 具体搜索逻辑在AStarSearch里，本类只负责装配与调度
     /// </summary>
     public static class AStarPathfinder
     {
         /// <summary>
-        /// 为一个 Chunk 内的所有寻路操作调度并行 A*
+        /// 为一个Chunk内的所有寻路操作调度并行A*
         /// </summary>
         public static JobHandle Schedule(
             in ArchetypeChunk _chunk,
@@ -27,13 +27,13 @@ namespace Navigation
             EntityTypeHandle _entityTypeHandle,
             JobHandle _inputDeps)
         {
-            // 每个 Job 需要独立的节点数组副本（并行 Job 间不能共享写入）
+            // 每个Job需要独立的节点数组副本（并行Job间不能共享写入）
             NativeArray<GridNode> newN = new NativeArray<GridNode>(_nodes.Length, Allocator.TempJob);
             NativeArray<GridNode>.Copy(_nodes, newN);
 
             AStarSearchJob searchJob = new AStarSearchJob()
             {
-                OperationEntities = _chunk.GetNativeArray(_entityTypeHandle), // 本 Chunk 中的操作 Entity 列表
+                OperationEntities = _chunk.GetNativeArray(_entityTypeHandle), // 本Chunk中的操作Entity列表
                 JobAllOperations = _operations,
                 JobAllResults = _results,
                 JobAllPathPoints = _pathPoints,
@@ -42,23 +42,23 @@ namespace Navigation
                 JobGridLocalTransform = _gridLocalTransform,
             };
 
-            // 调度并行 Job（每个操作分配到独立线程，批次大小 2）
+            // 调度并行Job（每个操作分配到独立线程，批次大小2）
             return searchJob.Schedule(_chunk.Count, 2, _inputDeps);
         }
     }
 
     /// <summary>
-    /// 核心 A* 寻路算法实现。
+    /// 核心A* 寻路算法实现
     ///
     /// 算法流程：
     /// 1. 将起点和终点世界坐标转换为网格节点
-    /// 2. 若终点不可通行，使用 NodeSnapping 寻找最近的可通行节点作为替代终点
-    /// 3. 标准 A* 主循环：
-    ///    a. 从 Open Set（最小堆）中取出 F 代价最小的节点
+    /// 2. 若终点不可通行，使用NodeSnapping寻找最近的可通行节点作为替代终点
+    /// 3. 标准A* 主循环：
+    ///    a. 从Open Set（最小堆）中取出F代价最小的节点
     ///    b. 若到达终点，回溯路径并返回
-    ///    c. 遍历 8 方向邻居，计算 G 代价并更新 Open Set
+    ///    c. 遍历8方向邻居，计算G代价并更新Open Set
     /// 4. 若未找到路径，返回最接近终点的节点的路径
-    /// 5. 路径回溯：通过 PreviousNodeIndex 链从终点追溯到起点，反转后输出
+    /// 5. 路径回溯：通过PreviousNodeIndex链从终点追溯到起点，反转后输出
     /// </summary>
     public struct AStarSearch
     {
@@ -68,7 +68,7 @@ namespace Navigation
         public ComponentLookup<PathfindingResult> AllResults;
         public BufferLookup<PathBuffer> AllPathPoints;
 
-        // A* Open Set（最小堆，按 F 代价排序）
+        // A* Open Set（最小堆，按F代价排序）
         [NativeDisableContainerSafetyRestriction, DeallocateOnJobCompletion]
         public NativeHashSet<GridNode> closedNodes;
 
@@ -79,7 +79,7 @@ namespace Navigation
         public Grid Grid;
         public LocalTransform GridLocalTransform;
 
-        // 工作节点数组（从主数组复制，A* 过程中修改 G/H/PreviousNodeIndex 值）
+        // 工作节点数组（从主数组复制，A* 过程中修改G/H/PreviousNodeIndex值）
         [NativeDisableContainerSafetyRestriction, DeallocateOnJobCompletion] public NativeArray<GridNode> Nodes;
         [NativeDisableContainerSafetyRestriction, DeallocateOnJobCompletion] public NativeArray<GridNode> NewNodes;
 
@@ -105,12 +105,12 @@ namespace Navigation
             int closestNodeDistFromGoal = int.MaxValue;
             bool targetFound = false;
 
-            // ===== 终点不可通行时：BFS 寻找最近可通行节点 =====
+            // ===== 终点不可通行时：BFS寻找最近可通行节点 =====
             if (!targetNode.IsAccessible)
             {
                 if (NodeSnapping.TryFindAccessibleTarget(targetNode, startNode, Grid, NewNodes, out GridNode newTargetNode))
                 {
-                    targetNode = newTargetNode; // 使用 BFS 找到的替代终点
+                    targetNode = newTargetNode; // 使用BFS找到的替代终点
                 }
                 else
                 {
@@ -122,19 +122,19 @@ namespace Navigation
                 }
             }
 
-            // ===== 初始化 A* 数据结构 =====
+            // ===== 初始化A* 数据结构 =====
             openNodes = new NativeMinHeap<GridNode>(Grid.NodeXCount * Grid.NodeYCount, Allocator.Temp) { };
             closedNodes = new NativeHashSet<GridNode>(0, Allocator.Temp);
-            openNodes.Add(startNode); // 将起点加入 Open Set
+            openNodes.Add(startNode); // 将起点加入Open Set
 
             int d = Grid.NodeXCount > Grid.NodeYCount ? Grid.NodeXCount : Grid.NodeYCount;
 
             // ===== A* 主循环 =====
             while (openNodes.Length > 0)
             {
-                // 取出 F 代价最小的节点（最小堆堆顶）
+                // 取出F代价最小的节点（最小堆堆顶）
                 GridNode currentNode = openNodes.PopFirstItem();
-                closedNodes.Add(currentNode); // 加入 Closed Set
+                closedNodes.Add(currentNode); // 加入Closed Set
 
                 // 到达终点：回溯路径并返回
                 if (currentNode.X == targetNode.X && currentNode.Y == targetNode.Y)
@@ -147,7 +147,7 @@ namespace Navigation
                     break;
                 }
 
-                // 记录距目标最近的节点（用于 GoToClosest 策略）
+                // 记录距目标最近的节点（用于GoToClosest策略）
                 int currNodeDistanceFromGoal = GridUtility.NodeDistance(currentNode, targetNode);
                 if (currNodeDistanceFromGoal < closestNodeDistFromGoal)
                 {
@@ -155,7 +155,7 @@ namespace Navigation
                     closestNode = currentNode;
                 }
 
-                // ===== 遍历 8 方向邻居 =====
+                // ===== 遍历8方向邻居 =====
                 NativeArray<int2> neighboursOffsetIndecies = GridUtility.NodePossibleNeighbours(Allocator.Temp);
 
                 foreach (int2 neighbourIndexOffset in neighboursOffsetIndecies)
@@ -174,7 +174,7 @@ namespace Navigation
 
                     GridNode neighbour = NewNodes[neighbourIndex];
 
-                    // 检查邻居是否在 Closed Set 中（已探索过）
+                    // 检查邻居是否在Closed Set中（已探索过）
                     bool neighbourInClosed = false;
                     foreach (GridNode closedNodeItem in closedNodes)
                     {
@@ -191,7 +191,7 @@ namespace Navigation
                     // 计算经过当前节点到达邻居的代价（G = 父G + 移动代价 + 地形惩罚）
                     int movementCost = currentNode.GCost + GridUtility.NodeDistance(currentNode, neighbour) + neighbour.Penalty;
 
-                    // 若新代价更低，或邻居尚未在 Open Set 中，更新邻居数据
+                    // 若新代价更低，或邻居尚未在Open Set中，更新邻居数据
                     if (movementCost < neighbour.GCost || !openNodes.Contains(neighbour))
                     {
                         neighbour.GCost = movementCost;
@@ -205,7 +205,7 @@ namespace Navigation
 
                         neighbour.PreviousNodeIndex = currentNodeIndex;
 
-                        // 更新 Open Set 中已有的邻居节点（代价降低需要重新堆化）
+                        // 更新Open Set中已有的邻居节点（代价降低需要重新堆化）
                         for (int i = 0; i < openNodes.Length; i++)
                         {
                             if (openNodes.Items[i].Equals(neighbour))
@@ -219,7 +219,7 @@ namespace Navigation
 
                         if (!openNodes.Contains(neighbour))
                         {
-                            openNodes.Add(neighbour); // 新节点加入 Open Set
+                            openNodes.Add(neighbour); // 新节点加入Open Set
                         }
                         else
                         {
@@ -245,7 +245,7 @@ namespace Navigation
         }
 
         /// <summary>
-        /// 路径回溯：从终点通过 PreviousNodeIndex 链追溯到起点，
+        /// 路径回溯：从终点通过PreviousNodeIndex链追溯到起点，
         /// 然后反转顺序（起点→终点），将路径点世界坐标写入缓冲区
         /// </summary>
         void RetracePath(

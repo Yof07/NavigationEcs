@@ -10,16 +10,16 @@ using Unity.Physics;
 namespace Navigation.Demos
 {
     /// <summary>
-    /// GroupTarget 场景的多代理生成系统。
+    /// GroupTarget场景的多代理生成系统
     /// 游戏启动后仅执行一次：将代理按同心圆排列生成，并为每个代理挂载
-    /// ConstantTargetFollower，使其持续追踪玩家控制的目标球（TargetSphereMarker）。
+    /// ConstantTargetFollower，使其持续追踪玩家控制的目标球（TargetSphereMarker）
     /// </summary>
     [RequireMatchingQueriesForUpdate]
     [UpdateAfter(typeof(CheckObstaclesSystem))]
     [UpdateBefore(typeof(PathfindingRequestSystem))]
     partial struct GTSpawnerSystem : ISystem
     {
-        /// <summary>防止重复生成的标志，OnUpdate 只执行一次生成逻辑</summary>
+        /// <summary>防止重复生成的标志，OnUpdate只执行一次生成逻辑</summary>
         bool hasSpawned;
 
         //[BurstCompile]
@@ -35,20 +35,20 @@ namespace Navigation.Demos
 
             Entity agentPrefab = Entity.Null;
 
-            // 从场景中读取由 GTSpawner 烘焙好的 Prefab Entity 引用
+            // 从场景中读取由GTSpawner烘焙好的Prefab Entity引用
             foreach(var agentPrefHolder in SystemAPI.Query<GTAgentPrefabComponent>())
             {
                 agentPrefab = agentPrefHolder.Value;
             }
 
-            // Prefab 未就绪时跳过，等下一帧再试
+            // Prefab未就绪时跳过，等下一帧再试
             if (agentPrefab == Entity.Null)
             {
                 ecb.Dispose();
                 return;
             }
 
-            // 获取目标球 Entity，用于设置 ConstantTargetFollower.Target
+            // 获取目标球Entity，用于设置ConstantTargetFollower.Target
             Entity sphere = SystemAPI.GetSingletonEntity<TargetSphereMarker>();
 
             // 调大停止距离，避免代理过于靠近目标球时互相挤压
@@ -59,10 +59,10 @@ namespace Navigation.Demos
 
             hasSpawned = true;
 
-            // 环配置来自 GTSpawner 的 Inspector 数组，Baker 烘成 buffer
+            // 环配置来自GTSpawner的Inspector数组，Baker烘成buffer
             DynamicBuffer<SpawnRing> rings = SystemAPI.GetSingletonBuffer<SpawnRing>();
 
-            // 出生点过滤用的网格快照（本系统排在 CheckObstacles 之后，节点已扫过）
+            // 出生点过滤用的网格快照（本系统排在CheckObstacles之后，节点已扫过）
             Grid grid = default;
             LocalTransform gridTransform = default;
 
@@ -81,8 +81,8 @@ namespace Navigation.Demos
 
                 for (int i = 0; i < count; i++)    // 逐个代理
                 {
-                    // 将索引 i 均匀映射到 [0, 360) 度，用于圆周均布和 HSV 着色
-                    float ang = (math.PI * 2) / count * i;  // 整圈均分，再取第 i 份
+                    // 将索引i均匀映射到 [0, 360) 度，用于圆周均布和HSV着色
+                    float ang = (math.PI * 2) / count * i;  // 整圈均分，再取第i份
                     ang = math.degrees(ang);
                     ang = ang < 0 ? ang + 360 : ang;
 
@@ -91,7 +91,7 @@ namespace Navigation.Demos
                     Color rgbColor = Color.HSVToRGB(newColor.x, newColor.y, newColor.z);
                     rgbColor.a = 1;
 
-                    // 代理在圆周上的生成位置，Y=1 避免陷入地面
+                    // 代理在圆周上的生成位置，Y=1避免陷入地面
                     float3 spawnPos = new float3(
                         math.cos((math.PI * 2) / count * i) * radius,
                         1,
@@ -103,7 +103,7 @@ namespace Navigation.Demos
                         continue;
                     }
 
-                    // 面朝圆心（-spawnPos 方向），用于初始朝向
+                    // 面朝圆心（-spawnPos方向），用于初始朝向
                     LocalTransform locTransform = new LocalTransform()
                     {
                         Position = spawnPos,
@@ -111,7 +111,7 @@ namespace Navigation.Demos
                         Scale = 1
                     };
 
-                    // 初始目标点先设置为圆心对面（后续由 ConstantTargetFollower 动态更新）
+                    // 初始目标点先设置为圆心对面（后续由ConstantTargetFollower动态更新）
                     PathfindingRequester requester = new PathfindingRequester()
                     {
                         Destination = spawnPos + (locTransform.Forward() * radius * 2),
@@ -119,7 +119,7 @@ namespace Navigation.Demos
                         RequestGiven = false,   // false = 立即触发寻路请求
                     };
 
-                    // 设置代理的渲染颜色（通过 Entities Graphics 的 MaterialProperty）
+                    // 设置代理的渲染颜色（通过Entities Graphics的MaterialProperty）
                     URPMaterialPropertyBaseColor color = new URPMaterialPropertyBaseColor()
                     {
                         Value = new float4(rgbColor.r, rgbColor.g, rgbColor.b, rgbColor.a)
@@ -131,7 +131,7 @@ namespace Navigation.Demos
                         Target = sphere,
                     };
 
-                    Entity e = ecb.Instantiate(agentPrefab);    // 克隆 agentPrefab，并返回一个临时句柄作为接下来的命令参数
+                    Entity e = ecb.Instantiate(agentPrefab);    // 克隆agentPrefab，并返回一个临时句柄作为接下来的命令参数
                     ecb.SetComponent(e, locTransform);
                     ecb.SetComponent(e, requester);
                     ecb.AddComponent(e, color);
