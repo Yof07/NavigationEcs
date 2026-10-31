@@ -550,8 +550,7 @@ namespace KNN
 			b.Max = max;
 			return b;
 		}
-
-		// TODO: When multiple points overlap exactly this function breaks
+		
 		/// <summary>
 		/// 将一个节点分割为正负两个子节点（KD树构建的核心步骤）
 		///
