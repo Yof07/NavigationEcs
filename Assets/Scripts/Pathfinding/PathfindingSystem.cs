@@ -11,7 +11,7 @@ namespace Navigation
     /// <summary>
     /// 寻路编排系统只做三件事：
     /// 1. 每帧把网格节点数据拷成NativeArray（供算法使用）；
-    /// 2. 调度A*（具体逻辑在AStar/AStarPathfinder.cs，本系统不含搜索逻辑）；
+    /// 2. 调度A*（调度入口在AStar/AStarPathfinder.cs，搜索算法在AStar/AStarSearch.cs，本系统不含搜索逻辑）；
     /// 3. 同帧Complete，保证下游AgentMovementSystem能读到结果
     /// </summary>
     [UpdateAfter(typeof(PathfindingRequestSystem))]
@@ -76,7 +76,7 @@ namespace Navigation
                     nodes[i] = nodesBufferComponents[i].Node;
                 }
 
-                // 对每个Archetype Chunk处理其中的所有寻路操作
+                // 对每个Archetype Chunk内部的所有寻路操作Entities都用AStarPathfinder.Schedule来调度A*
                 Profiler.BeginSample("PathfindingSystem: Schedule A*");
                 foreach (var archetypeChunk in chunks)
                 {
