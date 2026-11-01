@@ -33,8 +33,6 @@ namespace Navigation
     {
         // 是否已完成障碍物扫描（避免每帧重复扫描）
         private bool mHasCheckedForObstacles;
-        // 是否已完成惩罚扫描（当前版本CheckForPenalties已合并入CheckForObstacles）
-        private bool mHasCheckedForPenalties;
 
         // 组件查找缓存（减少每帧重复创建的开销）
         // 按Entity和快速组件类型在chunk中的基址来计算偏移量查找具体的Obstacle / Penalty组件
@@ -44,7 +42,7 @@ namespace Navigation
 
         /// <summary>
         /// 系统创建时初始化：建立组件查找缓存（Obstacle / Penalty），
-        /// 并把两个扫描标志的初值设为false
+        /// 并把扫描标志的初值设为false
         ///
         /// 初值false是刻意的跨系统握手约定：本系统第一帧会无条件执行一次扫描
         /// （不依赖RefreshGrid），保证场景加载后障碍物数据立即可用；
@@ -55,7 +53,6 @@ namespace Navigation
         public void OnCreate(ref SystemState state)
         {
             mHasCheckedForObstacles = false;
-            mHasCheckedForPenalties = false;
 
             mAllObstacles = state.GetComponentLookup<Obstacle>();
             mAllPenalties = state.GetComponentLookup<Penalty>();
@@ -90,7 +87,6 @@ namespace Navigation
                 {
                     grid.ValueRW.RefreshGrid = false;
                     mHasCheckedForObstacles = false;
-                    mHasCheckedForPenalties = false;
                     gridRefreshed = true;
                 }
 
@@ -105,7 +101,6 @@ namespace Navigation
                 }
 
                 // 网格被外部要求重扫、且配置了「刷新后重新寻路」时，只置一次通知；
-                // 真正改RequestGiven的是AgentMovementSystem（它才是PathFollower的拥有者）
                 if (gridRefreshed)
                 {
                     grid.ValueRW.Version++; // 发布「网格数据变了」，谁来订阅由订阅方自己决定

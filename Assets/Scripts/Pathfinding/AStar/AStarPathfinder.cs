@@ -43,6 +43,8 @@ namespace Navigation
                 JobGridLocalTransform = _gridLocalTransform,
             };
             
+            // 第二个参数 innerloopBatchCount：每个调度单元内循环处理的元素数。
+            // 2 = 每两个 op 打成一个包，由工作线程逐个抢包执行（1 才是最小粒度）。
             return searchJob.Schedule(_chunk.Count, 2, _inputDeps);
         }
     }

@@ -43,6 +43,11 @@ namespace Navigation
         public ComponentLookup<PathFollower> AllPathFollowers;
         public BufferLookup<NeighbourBuffer> AllAgentsNeighbours;
 
+        // 查询在OnCreate里建一次，OnUpdate复用
+        private EntityQuery PhysicsWorldSingletonQuery;
+        private EntityQuery GridQuery;
+        private EntityQuery AvoidanceAgentsQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
@@ -54,6 +59,16 @@ namespace Navigation
             AllLocalTransforms = state.GetComponentLookup<LocalTransform>();
             AllPathFollowers = state.GetComponentLookup<PathFollower>();
             AllAgentsNeighbours = state.GetBufferLookup<NeighbourBuffer>();
+
+            PhysicsWorldSingletonQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<PhysicsWorldSingleton>()
+                .Build(ref state);
+            GridQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Grid, LocalTransform, NeighbourQuerySettings, UniformGridQuerySettings>()
+                .Build(ref state);
+            AvoidanceAgentsQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LocalTransform, AvoidanceAgent>()
+                .Build(ref state);
         }
 
         [BurstCompile]
@@ -71,21 +86,14 @@ namespace Navigation
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
             NativeList<Entity> allAgents = new NativeList<Entity>(Allocator.Temp);
 
-            // 获取Unity Physics World单例（用于射线检测）
-            EntityQueryBuilder builder = new EntityQueryBuilder(Allocator.Temp).WithAll<PhysicsWorldSingleton>();
-            EntityQuery singletonQuery = state.EntityManager.CreateEntityQuery(builder);
-            var physicsWorld = singletonQuery.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
+            // 复用OnCreate里建的查询，避免每帧重建
+            var physicsWorld = PhysicsWorldSingletonQuery.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
 
             // 获取Grid参数（节点大小等）
-            builder = new EntityQueryBuilder(Allocator.Temp).WithAll<Grid, LocalTransform, NeighbourQuerySettings, UniformGridQuerySettings>();
-            EntityQuery gridQuery = state.EntityManager.CreateEntityQuery(builder);
-            var grid = gridQuery.GetSingleton<Grid>();
-            var gridTransform = gridQuery.GetSingleton<LocalTransform>();
-            var neighbourQuerySettings = gridQuery.GetSingleton<NeighbourQuerySettings>();
-            var uniformGridQuerySettings = gridQuery.GetSingleton<UniformGridQuerySettings>();
-
-            singletonQuery.Dispose();
-            gridQuery.Dispose();
+            var grid = GridQuery.GetSingleton<Grid>();
+            var gridTransform = GridQuery.GetSingleton<LocalTransform>();
+            var neighbourQuerySettings = GridQuery.GetSingleton<NeighbourQuerySettings>();
+            var uniformGridQuerySettings = GridQuery.GetSingleton<UniformGridQuerySettings>();
 
             // =============================================
             // 阶段1：路径结果同步 + 目标追踪
@@ -262,12 +270,8 @@ namespace Navigation
             // 要被Job线程用，内存活到Job线程用完
             NativeList<float3> avoidanceAgentsPositions = new NativeList<float3>(0, Allocator.TempJob);    
 
-            EntityQuery avoidanceAgents = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<LocalTransform, AvoidanceAgent>()
-                .Build(ref state);
-
             // 如果没有任何避障代理，跳过邻居查询阶段
-            if (avoidanceAgents.IsEmpty)
+            if (AvoidanceAgentsQuery.IsEmpty)
             {
                 avoidanceAgentsPositions.Dispose();
                 ecb.Playback(state.EntityManager);
@@ -277,7 +281,7 @@ namespace Navigation
             }
 
             // 收集所有避障代理的世界坐标
-            NativeArray<Entity> avAgEnts = avoidanceAgents.ToEntityArray(Allocator.Temp);
+            NativeArray<Entity> avAgEnts = AvoidanceAgentsQuery.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < avAgEnts.Length; i++)
             {
                 avoidanceAgentsPositions.Add(AllLocalTransforms[avAgEnts[i]].Position);
